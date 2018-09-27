@@ -1,0 +1,21 @@
+<aura:component controller="Titular_CrearBeneficiarioController">
+	<ltng:require scripts="{!$Resource.XappiaUtils}" afterScriptsLoaded="{!c.init}"/>
+	
+	<aura:attribute name="holderId" type="String" />
+	<aura:attribute name="contractId" type="String" />
+	<aura:attribute name="caseId" type="String" />
+	<aura:attribute name="distributionChannel" type="String" />
+	<aura:attribute name="recipientTypes" type="object[]" />
+	<aura:attribute name="isLoading" type="boolean" default="true" />
+	
+	<aura:if isTrue="{!v.isLoading}">
+		<lightning:spinner variant="brand" size="large"/>
+		<aura:set attribute="else">
+			<lightning:buttonGroup >
+				<aura:iteration items="{!v.recipientTypes}" var="rt">
+					<lightning:button variant="brand" label="{!rt.Name}" onclick="{!c.createRecipient}" value="{!rt.Id}" />
+				</aura:iteration>
+			</lightning:buttonGroup>
+		</aura:set>
+	</aura:if>
+</aura:component>

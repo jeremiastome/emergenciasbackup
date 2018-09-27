@@ -1,0 +1,89 @@
+<aura:component access="global" controller="Cuenta_ReenviarFacturaController">
+  
+  <aura:attribute name="documento" type="Object" />
+  <aura:attribute name="nroDocumentoRemoto" type="String" />
+  <aura:attribute name="showModal" type="String" />
+  <aura:attribute name="RecordTypeId" type="String" />
+  <aura:attribute name="facNumber" type="String" />
+  <aura:attribute name="altMail" type="String" />
+ 
+  <aura:attribute name="isLoading" type="boolean" default="false" />
+ 
+
+  <article class="slds-tile slds-hint-parent">
+
+    <div class="slds-grid slds-grid_align-spread slds-has-flexi-truncate">
+      <h3 class="slds-tile__title slds-truncate slds-text-heading_small" title="{!v.documento.numeroDocumento}"><b>{!v.documento.numeroDocumento}</b></h3>
+      <div class="slds-shrink-none">
+        <aura:if isTrue="{!v.documento.tipo == 'Factura'}">
+            
+        <lightning:buttonIcon iconName="utility:email" class="slds-col--bump-right" variant="bare" 
+                              alternativeText="Reenviar Factura" onclick="{!c.ResendFactJS}"/>
+        </aura:if>
+          
+        <aura:if isTrue="{!v.documento.tipo == 'Factura'}">
+        <lightning:buttonIcon iconName="utility:case" class="slds-col--bump-right" variant="bare" 
+                              alternativeText="Crear Caso" onclick="{!c.createCase}" name="{!v.documento.numeroDocumento}"/>
+        </aura:if>
+        <lightning:buttonIcon iconName="utility:preview" class="slds-col--bump-left" variant="bare" 
+                              alternativeText="Ver detalles" onclick="{!c.verDetalles}" />
+          
+     <aura:if isTrue="{!v.isLoading}" >
+		<lightning:spinner variant="brand" size="large"/>
+	</aura:if>
+      </div>
+    </div>
+
+      
+      
+    <div class="slds-tile__detail">
+      <dl class="slds-dl--horizontal">
+         
+
+        
+        <aura:if isTrue="{!v.documento.tipo != 'Pago'}">
+          <dt class="slds-dl--horizontal__label">
+            <p class="slds-truncate" title="Factura">Factura:</p>
+          </dt>
+          <dd class="slds-dl--horizontal__detail slds-tile__meta">
+            <p class="slds-truncate" title="{!v.documento.facturaAsoc}"><ui:outputText value="{!v.documento.facturaAsoc}"/></p>
+          </dd>
+        </aura:if>
+
+        <dt class="slds-dl--horizontal__label">
+          <p class="slds-truncate" title="Contrato">Contrato:</p>
+        </dt>
+        <dd class="slds-dl--horizontal__detail slds-tile__meta">
+          <p class="slds-truncate" title="{!v.documento.numeroDeContrato}"><ui:outputText value="{!v.documento.numeroDeContrato}"/></p>
+        </dd> 
+
+        <dt class="slds-dl--horizontal__label">
+          <p class="slds-truncate" title="Fecha">Fecha:</p>
+        </dt>
+        <dd class="slds-dl--horizontal__detail slds-tile__meta">
+          <p class="slds-truncate" title="{!v.documento.fechaDocumento}"><ui:outputDate value="{!v.documento.fechaDocumento}"/></p>
+        </dd> 
+
+        <dt class="slds-dl--horizontal__label">
+          <p class="slds-truncate" title="Importe">Importe:</p>
+        </dt>
+        <dd class="slds-dl--horizontal__detail slds-tile__meta">
+          <p class="slds-truncate" title="{!v.documento.importe}"><ui:outputNumber value="{!v.documento.importe}"/></p>
+        </dd>
+
+        <aura:if isTrue="{!v.documento.tipo == 'Pago'}">
+          <dt class="slds-dl--horizontal__label">
+            <p class="slds-truncate" title="Medio de Pago">Medio de pago:</p>
+          </dt>
+          <dd class="slds-dl--horizontal__detail slds-tile__meta">
+            <p class="slds-truncate" title="{!v.documento.medioDePago}"><ui:outputText value="{!v.documento.medioDePago}"/></p>
+          </dd>
+        </aura:if>
+
+
+      </dl>
+
+    </div>
+  </article>
+
+</aura:component>

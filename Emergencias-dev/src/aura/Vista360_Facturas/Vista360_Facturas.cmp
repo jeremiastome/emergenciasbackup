@@ -1,0 +1,62 @@
+<aura:component >
+  <aura:attribute name="icono" type="String"/>
+  <aura:attribute name="titulo" type="String"/>
+  <aura:attribute name="facturas" type="Object[]"/>
+  <aura:attribute name="nroDocumentoRemoto" type="String" />
+  <aura:attribute name="showModal" type="String" />
+  <aura:attribute name="RecordTypeId" type="String" />
+
+    
+  <aura:attribute name="iconoPagos" type="String" />
+  <aura:attribute name="iconoNotasDeCredito" type="String"/>
+    
+    
+   <lightning:card iconName="{!v.icono}" title="Facturas" class="slds-is-relative">
+
+        <div class="botones slds-button-group 	slds-grid_vertical-align-end " role="group">
+            <ui:button aura:id="button" class="button" label="Ver todas" press="{!c.showFacturas}"/>     
+            <ui:button aura:id="button" class="button" label="Ver facturas no pagas" press="{!c.hideFacturasNoPagas}"/>     
+            <ui:button aura:id="button" class="button" label="Ver facturas pagas" press="{!c.hideFacturasPagas}"/>   
+        </div>
+  	<ui:scrollerWrapper class="card scrollSize">
+    <ul class="slds-accordion slds-list_vertical  slds-has-cards--space">
+		
+        <aura:iteration items="{!v.facturas}" var="factura" indexVar="index">
+         
+
+            <li class="slds-accordion__list-item" id="{!'li'+index}">        
+                <section class="slds-accordion__section" id="{!'N'+index}">
+                    
+                    <c:Vista360_DocumentoContable documento="{!factura.documento}" RecordTypeId="{!v.RecordTypeId}" nroDocumentoRemoto="{!v.nroDocumentoRemoto}" showModal="{!v.showModal}" 
+						facNumber="{!factura.documento.numeroDocumento}" altMail=""/>
+                       
+                      <div class="slds-accordion__summary">
+                        <h3 class="slds-text-heading_small slds-accordion__summary-heading" style="padding-top:6px; padding-top:6px; ">
+						<lightning:icon iconName="utility:arrowdown" size="small"/>
+
+                          <button aria-controls="accordion-details-01" aria-expanded="true" class="slds-button slds-button_reset slds-accordion__summary-action " onclick="{!c.showOrHide}">
+                            <span class="slds-truncate" title="Accordion summary">Ver</span>
+                          </button>
+                        </h3>
+                      </div>
+                      <div aria-hidden="false" class="slds-accordion__content" id="accordion-details-01">  
+                          <div class="slds-p-left_xx-small slds-p-right_xx-small"	>
+                              <c:Vista360_ListaDocumentosContables icono="{!v.iconoPagos}" titulo="Pagos" documentos="{!factura.pagos}" 
+                                                                      nroDocumentoRemoto="{!v.nroDocumentoRemoto}" showModal="{!v.showModal}" />
+                              <c:Vista360_ListaDocumentosContables icono="{!v.iconoNotasDeCredito}" titulo="Notas De Credito" documentos="{!factura.notasDeCredito}" 
+                                                                      nroDocumentoRemoto="{!v.nroDocumentoRemoto}" showModal="{!v.showModal}" />
+                         </div>				
+                     </div>
+                 </section>
+             </li>
+    
+         </aura:iteration>
+    	<aura:if isTrue="{!empty(v.facturas)}">
+        	<li class="slds-list__item"><p>No hay datos</p></li>
+        </aura:if>
+    </ul>
+    
+    </ui:scrollerWrapper>
+    
+  </lightning:card>
+</aura:component>

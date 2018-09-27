@@ -1,0 +1,10 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" controller="Opp_AsignacionDeBeneficiosController">
+	<ltng:require scripts="{!$Resource.XappiaUtils}" afterScriptsLoaded="{!c.init}"/>
+	<aura:attribute name="recordId" type="String" />
+	<aura:attribute name="contractId" type="String" />
+	<aura:attribute name="hasContractId" type="Boolean" default="false" />
+	
+	<aura:if isTrue="{!v.hasContractId}" >
+		<lightning:button variant="neutral" label="Asignar beneficiarios" onclick="{!c.BringAsignmentPage}" />
+	</aura:if>
+</aura:component>

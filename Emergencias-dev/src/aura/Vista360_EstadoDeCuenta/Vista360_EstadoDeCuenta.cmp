@@ -1,0 +1,52 @@
+<aura:component controller="Vista360Controller" implements="force:hasRecordId,flexipage:availableForRecordHome,force:appHostable" access="global" >
+
+  <aura:attribute name="clienteRecord" type="Account" />
+  <aura:attribute name="recordId" type="Id" />
+  <aura:attribute name="estado" type="Object" />
+  <aura:attribute name="nroDocumentoRemoto" type="String" />
+  <aura:attribute name="showModal" type="String" default="false" />
+  <aura:attribute name="RecordTypeId" type="String" />
+
+  <aura:attribute name="iconoPagos" type="String" default="custom:custom16" />
+  <aura:attribute name="iconoFactura" type="String" default="custom:custom93" />
+  <aura:attribute name="iconoNotasDeCredito" type="String" default="custom:custom16" />
+
+  <force:recordData aura:id="forceRecord"
+                    recordId="{!v.recordId}"
+                    targetRecord="{!v.clienteRecord}"
+                    recordUpdated="{!c.doInit}"
+                    fields="Id,N_mero_nico_de_Cliente__c,Sociedad__c"
+                    mode="VIEW" />
+
+  <c:Vision360_Saldo saldo="{!v.estado.saldo}" aura:id="cSaldo" />
+
+  <lightning:card iconName="custom:custom16" title="Estado de cuenta" class="slds-is-relative">
+
+    <aura:set attribute="actions">
+        <lightning:buttonIcon iconName="utility:refresh" class="slds-col--bump-left" variant="bare"
+                              alternativeText="Refrescar" onclick="{!c.doInit}" />
+    </aura:set>
+
+    <div class="slds-p-left_xx-small slds-p-right_xx-small">
+
+      <c:Vista360_Facturas titulo="Facturas" facturas="{!v.estado.facturasConAdjuntos}"  icono="{!v.iconoFactura}"
+                            nroDocumentoRemoto="{!v.nroDocumentoRemoto}" showModal="{!v.showModal}" RecordTypeId="{!v.recordTypeId}" />
+
+      <c:Vista360_ListaDocumentosContables icono="{!v.iconoPagos}" titulo="Pagos" documentos="{!v.estado.pagosSueltos}"
+                                          nroDocumentoRemoto="{!v.nroDocumentoRemoto}" showModal="{!v.showModal}" />
+
+      <c:Vista360_ListaDocumentosContables icono="{!v.iconoNotasDeCredito}" titulo="Notas de credito" documentos="{!v.estado.notasDeCreditoSueltas}"
+                                          nroDocumentoRemoto="{!v.nroDocumentoRemoto}" showModal="{!v.showModal}" />
+
+    </div>
+
+    <lightning:spinner aura:id="spinner" variant="brand" class="spin" size="large"/>
+    <c:Vista360_DetallesDocumentoContable nroDocumentoRemoto="{!v.nroDocumentoRemoto}" showModal="{!v.showModal}"/>
+
+
+  </lightning:card>
+
+
+
+
+</aura:component>

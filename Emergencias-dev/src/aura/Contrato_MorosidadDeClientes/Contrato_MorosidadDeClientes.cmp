@@ -1,0 +1,43 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" controller="ContratoMorosidadDeClientesController">
+	<ltng:require scripts="{!$Resource.XappiaUtils}" afterScriptsLoaded="{!c.checkPayment}"/>
+	<aura:handler event="force:refreshView" action="{!c.checkPayment}"/>
+	<aura:attribute name="recordId" type="String" />
+	<aura:attribute name="contractsWithSamePayment" type="Object[]" default="[]" />
+	<aura:attribute name="isLoading" type="boolean" default="true" />
+	<!-- 17
+	<br/> -->
+	<lightning:card >
+		<aura:set attribute="title">
+			{!$Label.c.Contrato_morosidad_de_cliente_Titulo}
+		</aura:set>
+		<p class="slds-p-horizontal--small">
+			<aura:if isTrue="{!v.isLoading != true}" >
+				<aura:if isTrue="{!v.contractsWithSamePayment.length != 0}" >
+					<aura:iteration items="{!v.contractsWithSamePayment}" var="contract">
+						<div>
+							<div class="{!'circle ' + contract.Cliente__r.bgColor}"/>
+							<div class="contractText">
+								<lightning:breadcrumbs >
+									<lightning:breadcrumb label="{!contract.Cliente__r.Name}" href="{!contract.Cliente__c}" onclick="{!c.onClickLink}"/>
+									<lightning:breadcrumb label="{!contract.Name}" href="{!contract.Id}" onclick="{!c.onClickLink}"/>
+								</lightning:breadcrumbs>
+							</div>
+						</div>
+					</aura:iteration>
+					<aura:set attribute="else">
+						{!$Label.c.Contrato_morosidad_de_cliente_No_encontrado}
+					</aura:set>
+				</aura:if>
+				<aura:set attribute="else">
+					<div style="position:relative; min-height: 45px;">
+						<div role="status" class="slds-spinner slds-spinner_brand slds-spinner_medium">
+							<span class="slds-assistive-text">Cargando</span>
+							<div class="slds-spinner__dot-a"></div>
+							<div class="slds-spinner__dot-b"></div>
+						</div>
+					</div>
+				</aura:set>
+			</aura:if>
+		</p>
+	</lightning:card>
+</aura:component>

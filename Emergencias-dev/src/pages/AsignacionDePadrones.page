@@ -1,0 +1,148 @@
+<apex:page controller="AsignacionDePadronesController" docType="html-5.0">
+	<apex:includeScript value="{!$Resource.jQuery}"/>
+
+	<style>
+		.mainCardContainer {
+			margin-top: 1.5em;
+			padding-left: 15%;
+			padding-right: 15%;
+		}
+
+		.recipientUL:first-child {
+			border-top: 1px solid #d8dde6;
+		}
+
+		.recipientLI {
+			border-bottom: 1px solid #d8dde6;
+			padding-left: 2em;
+			padding-right: 2em;
+			padding-top: 0.5em;
+			padding-bottom: 0.5em;
+		}
+
+		.detailsTable {
+			border-collapse: collapse;
+		}
+
+		table.detailsTable, table.detailsTable th, table.detailsTable td {
+			border: 1px solid black;
+			padding: 0.3em;
+			margin: 0.3em;
+		}
+	</style>
+
+	<apex:slds />
+	<apex:form >
+		<apex:actionFunction action="{!addRecipient}" name="addRecipient" rerender="NextRecipientInput,RecipientsData"/>
+		<apex:actionFunction action="{!removeRecipient}" name="removeRecipient" rerender="NextRecipientInput,RecipientsData">
+			<apex:param name="indexToRemove" value="{!RecipientToRemove}" assignTo="{!RecipientToRemove}"/>
+		</apex:actionFunction>
+		<!-- =================================================================== -->
+		<div class="slds-scope mainCardContainer">
+			<article class="slds-card">
+				<div class="slds-card__header slds-grid">
+					<header class="slds-media slds-media_center slds-has-flexi-truncate">
+						<div class="slds-media__body">
+							<h2>
+								<a href="javascript:void(0);" class="slds-card__header-link slds-truncate">
+									<span class="slds-text-heading_small">Padrones</span>
+								</a>
+							</h2>
+						</div>
+					</header>
+				</div>
+				<!-- ================================================================== -->
+				<div class="slds-card__body">
+					<div style="padding-left: 3em; padding-bottom: 1em;">
+						Fecha de padr&oacute;n:&nbsp;
+						<apex:input value="{!StartDate}" type="date" />&nbsp;&nbsp;
+						Titular:&nbsp;
+						<apex:SelectList value="{!SelectedHolder}" size="1">
+							<apex:SelectOptions value="{!Holders}" />
+						</apex:SelectList>&nbsp;&nbsp;
+						Provincia:&nbsp;
+						<apex:SelectList value="{!NextRecipient}" size="1" id="NextRecipientInput">
+							<apex:SelectOptions value="{!ProvinceOptions}" />
+						</apex:SelectList>
+						<button class="slds-button slds-button_neutral" onclick="addRecipient(); return false;">
+							<svg class="slds-button__icon slds-button__icon_left" aria-hidden="true">
+								<use xmlns:xlink="http://www.w3.org/1999/xlink"
+									xlink:href="{!URLFOR($Asset.SLDS, 'assets/icons/utility-sprite/svg/symbols.svg#new')}"
+								/>
+							</svg>Agregar Provincia
+						</button>
+					</div>
+					<apex:outputPanel id="RecipientsData">
+						<ul class="recipientUL">
+							<apex:repeat var="Wrapper" value="{!Recipients}" >
+								<li class="recipientLI">
+									<section>
+										<div class="slds-grid">
+											<div class="slds-col">
+												<h3 class="slds-text-heading_small slds-accordion__summary-heading">
+													{!Wrapper.Recipient.Provincia1__c}
+												</h3>
+											</div>
+											<div class="slds-col">
+												<apex:inputField value="{!Wrapper.Recipient.Interlocutor__c}" />
+											</div>
+											<div class="slds-no-flex removeButtonDiv">
+												<button onclick="removeRecipient({!Wrapper.Index}); return false;" class="slds-button slds-button_neutral">
+													Eliminar
+												</button>
+											</div>
+										</div>
+										<div>
+											<table class="detailsTable">
+												<tr>
+													<th>
+														Tratamiento de IVA
+													</th>
+													<th>
+														Producto
+													</th>
+													<th>
+														Cantidad de capitas
+													</th>
+												</tr>
+												<apex:repeat var="IvaTreatmentKey" value="{!IVATreatmentLabelByValue}">
+													<tr>
+														<td rowspan="{!Coverages.size + 1}">
+															{!IVATreatmentLabelByValue[IvaTreatmentKey]}
+														</td>
+													</tr>
+													<apex:repeat var="Coverage" value="{!Coverages}">
+														<tr>
+															<td>
+																{!Coverage.Producto__r.Name}
+															</td>
+															<td>
+																<apex:inputField value="{!Wrapper.RelationsByIVAAndCoverage[IvaTreatmentKey + Coverage.Id].Cantidad_de_Padron__c}" />
+															</td>
+														</tr>
+													</apex:repeat>
+												</apex:repeat>
+											</table>
+										</div>
+									</section>
+								</li>
+							</apex:repeat>
+						</ul>
+					</apex:outputPanel>
+				</div>
+				<!-- ================================================================== -->
+				<footer class="slds-card__footer">
+					<a class="slds-button slds-button_neutral" href="/{!ReturnRecord}">
+						Volver
+					</a>
+					<apex:commandButton action="{!save}"
+						value="Guardar y volver"
+						styleClass="slds-button slds-button_brand"
+						oncomplete="checkShowToast(); return false;"
+					/>
+				</footer>
+			</article>
+		</div>
+	</apex:form>
+
+</apex:page>

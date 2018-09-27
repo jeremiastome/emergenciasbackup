@@ -1,0 +1,821 @@
+<apex:page controller="AgregarProductosController" doctype="html-5.0">
+	<apex:includeScript value="{!$Resource.jQuery}"/>
+	<script>
+		var $j = jQuery.noConflict();
+		var productDisplayStatuses = [];
+		var additionalsDisplayStatuses = [];
+		var discountsDisplayStatuses = [];
+		var servicesDisplayStatuses = [];
+		var simulationDisplayStatuses = [];
+		
+		$j(document).ready(function () {
+			regenerateOpportunityLineItems();
+		});
+		
+		function hideSpinner() {
+			$j("#spinner").hide();
+		}
+		
+		function showSpinner() {
+			$j("#spinner").show();
+		}
+		
+		function addProduct() {
+			showSpinner();
+			getProductToAddDetails();
+		}
+		
+		function toggleAccordion(index) {
+			var isOpen = !productDisplayStatuses[index];
+			
+			var prodSwitch = $j("#productSwitch" + index);
+			$j("#productContent" + index).toggle(400);
+			$j("[subId=productShowInput" + index + "]").val(isOpen);
+			
+			var prodName = $j("#prodName" + index);
+			prodName.toggleClass("ElemOpen");
+			prodName.toggleClass("ElemClosed");
+			
+			productDisplayStatuses[index] = isOpen;
+		}
+		
+		function prepareToRemoveProduct(index) {
+			$j("[subId=ProductToRemove]").val(index);
+			
+			removeProduct();
+		}
+		
+		function toggleAdditionals(index) {
+			var isOpen = !additionalsDisplayStatuses[index];
+			
+			$j("[subId=showAdditionalsInput" + index + "]").val(isOpen);
+			$j("#additionalChecks" + index).toggle(400);
+			var buttonElem = $j("#additionalsButton" + index);
+			buttonElem.toggleClass("ElemOpen");
+			buttonElem.toggleClass("ElemClosed");
+			
+			additionalsDisplayStatuses[index] = isOpen;
+		}
+		
+		function toggleDiscounts(index) {
+			var isOpen = !discountsDisplayStatuses[index];
+			
+			$j("[subId=showDiscountsInput" + index + "]").val(isOpen);
+			$j("#discountsChecks" + index).toggle(400);
+			var buttonElem = $j("#discountsButton" + index);
+			buttonElem.toggleClass("ElemOpen");
+			buttonElem.toggleClass("ElemClosed");
+			
+			discountsDisplayStatuses[index] = isOpen;
+		}
+		
+		function toggleSimAmnt(index) {
+			var isOpen = !simulationDisplayStatuses[index];
+			
+			$j("[subId=showSimulationInput" + index + "]").val(isOpen);
+			$j("#simAmounts" + index).toggle(400);
+			var buttonElem = $j("#simButton" + index);
+			buttonElem.toggleClass("ElemOpen");
+			buttonElem.toggleClass("ElemClosed");
+			
+			simulationDisplayStatuses[index] = isOpen;
+		}
+		
+		function toggleServices(index) {
+			var isOpen = !servicesDisplayStatuses[index];
+			
+			$j("[subId=showServicesInput" + index + "]").val(isOpen);
+			$j("#servicesDetail" + index).toggle(400);
+			var buttonElem = $j("#servicesButton" + index);
+			buttonElem.toggleClass("ElemOpen");
+			buttonElem.toggleClass("ElemClosed");
+			
+			servicesDisplayStatuses[index] = isOpen;
+		}
+		
+		function prepareSimulation(){
+			showSpinner();
+			setTimeout(
+				function() {
+					$j("#simulation-result").show();
+					hideSpinner();
+				},
+				5000
+			);
+			
+		}
+		
+		function closeSimModal() {
+			$j("#simulation-result").hide();
+		}
+		
+	</script>
+	
+	<style>
+		.slds-scope .slds-spinner_container {
+			position: fixed;
+		}
+		
+		.mainCardContainer {
+			margin-top: 15px;
+			padding-left: 15%;
+			padding-right: 15%;
+		}
+		
+		span.ElemOpen:before {
+			content: "\002D";
+			font-weight: bold;
+			font-size: 1.3em;
+			min-width: 0.7em;
+			display: inline-block;
+			text-align: center;
+		}
+		
+		span.ElemClosed:before {
+			content: "\002B";
+			font-weight: bold;
+			font-size: 1.3em;
+			min-width: 0.7em;
+			display: inline-block;
+			text-align: center;
+		}
+		
+		.smallerButton {
+			line-height: 1.8em !important;
+			margin-bottom: 0.3em !important;
+			margin-top: 0.3em !important;
+			padding-left: 0.7em !important;
+			padding-right: 0.7em !important;
+		}
+		
+		.additionalsDetailsDiv {
+			border-left: 1px solid #d8dde6;
+		}
+		
+		.discountsDetailsDiv {
+			border-top: 1px solid #d8dde6;
+			border-bottom: 1px solid #d8dde6;
+			padding-bottom: 0.5em;
+			margin-bottom: 0.5em;
+		}
+		
+		.simAmntDiv {
+			border-bottom: 1px solid #d8dde6;
+			padding-bottom: 0.5em;
+			margin-bottom: 0.5em;
+		}
+		
+		.detailsGrid {
+			margin-bottom: 0.2em;
+		}
+		
+		.centeredTable td, .centeredTable th {
+			text-align: center;
+			padding-left: 0.25em;
+			padding-right: 0.25em;
+		}
+	</style>
+	<apex:slds />
+	
+	<apex:form >
+		<apex:actionFunction action="{!regenerateOpportunityLineItems}"
+			name="regenerateOpportunityLineItems"
+			rerender="ProductsSection"
+			oncomplete="hideSpinner(); return false;"
+		/>
+		<apex:actionFunction action="{!getProductToAddDetails}"
+			name="getProductToAddDetails"
+			rerender="ProductsSection"
+			oncomplete="hideSpinner(); return false;"
+		/>
+		<apex:actionFunction action="{!removeProduct}"
+			name="removeProduct"
+			rerender="ProductsSection"
+		/>
+		<apex:actionFunction action="{!simulatePrice}"
+			name="simulatePrice"
+		/>
+		
+		<apex:inputHidden value="{!ProductToRemove}" html-subId="ProductToRemove" />
+		<!-- ===================================================================== -->
+		<div class="slds-scope mainCardContainer">
+			<article class="slds-card">
+				<div class="slds-card__header slds-grid">
+					<header class="slds-media slds-media_center slds-has-flexi-truncate">
+						{!IF(AllowOnlyDiscounts, '', 'Agregar productos')}
+					</header>
+				</div>
+				<div class="slds-card__body slds-card__body_inner">
+					<apex:outputPanel id="ProductsSection">
+						<apex:pageMessages />
+						
+						<apex:outputPanel rendered="{!NOT(AllowOnlyDiscounts)}">
+							<div>
+								Producto:&nbsp;
+								<apex:input list="{!AvailableProductsNames}" value="{!ProductToAdd}"/>&nbsp;&nbsp;
+								<apex:commandButton onclick="addProduct(); return false;"
+									value="Agregar producto"
+									styleClass="slds-button slds-button_brand"
+									rerender="ProductsSection"
+								/>
+							</div>
+						</apex:outputPanel>
+						<ul class="slds-accordion">
+							<!-- ===================================================== -->
+							<!-- Products -->
+							<apex:repeat value="{!Products}" var="Product">
+								<li class="slds-accordion__list-item">
+									<section class="slds-accordion__section slds-is-open">
+										<apex:inputHidden value="{!Product.ShowDetails}" html-subId="productShowInput{!Product.Index}" />
+										<apex:inputHidden value="{!Product.ShowAditionals}" html-subId="showAdditionalsInput{!Product.Index}" />
+										<apex:inputHidden value="{!Product.ShowDiscounts}" html-subId="showDiscountsInput{!Product.Index}" />
+										<apex:inputHidden value="{!Product.ShowServices}" html-subId="showServicesInput{!Product.Index}" />
+										<apex:inputHidden value="{!Product.ShowSimulation}" html-subId="showSimulationInput{!Product.Index}" />
+										
+										<!-- =========================================== -->
+										<!-- Product header -->
+										<div style="display:inline-flex; width: 100%;" class="slds-accordion__summary">
+											<h3 class="slds-text-heading_small slds-accordion__summary-heading">
+												<button
+													id="productSwitch{!Product.Index}"
+													class="slds-button slds-button_reset slds-accordion__summary-action"
+													onclick="toggleAccordion({!Product.Index}); return false;"
+												>
+													<span id="prodName{!Product.Index}" class="slds-truncate Elem{!IF(Product.ShowDetails, 'Open', 'Closed')}">
+														{!Product.MainProduct.Numero__c}
+													</span>
+												</button>
+											</h3>
+											<!-- ================================== -->
+											<apex:outputPanel rendered="{!NOT(AllowOnlyDiscounts)}">
+												<button class="slds-button slds-button_destructive" onclick="prepareToRemoveProduct({!Product.Index}); return false;">
+													<svg class="slds-button__icon slds-button__icon_left" aria-hidden="true">
+														<use xmlns:xlink="http://www.w3.org/1999/xlink"
+															xlink:href="{!URLFOR($Asset.SLDS, 'assets/icons/utility-sprite/svg/symbols.svg#clear')}"
+														/>
+													</svg>Eliminar
+												</button>
+											</apex:outputPanel>
+										</div>
+										<!-- End Product header -->
+										<!-- =========================================== -->
+										<!-- Product details -->
+										<div id="productContent{!Product.Index}" style="display:{!IF(Product.ShowDetails, 'block', 'none')}">
+											<div class="slds-grid detailsGrid">
+												<!-- =================================== -->
+												<div id="Services" class="slds-col slds-size_1-of-2">
+													<button class="slds-button slds-button_reset slds-accordion__summary-action" onClick="toggleServices({!Product.Index}); return false;">
+														<span id="servicesButton{!Product.Index}" class="slds-truncate Elem{!IF(Product.ShowServices, 'Open', 'Closed')}">
+															Servicios:
+														</span>
+													</button>
+													<div id="servicesDetail{!Product.Index}" style="display: {!IF(Product.ShowServices, 'block', 'none')}; padding-top: 0.5rem;">
+														<apex:outputPanel rendered="{!Product.Services.size > 0}">
+															<apex:repeat value="{!Product.Services}" var="Service">
+																<br/>
+																{!Service.Name}
+															</apex:repeat>
+														</apex:outputPanel>
+														<apex:outputPanel rendered="{!Product.Services.size == 0}">
+															<br/>
+															{!$Label.Producto_sin_servicios}
+														</apex:outputPanel>
+													</div>
+												</div>
+												<!-- =================================== -->
+												<div id="Additionals" class="slds-col slds-size_1-of-2 additionalsDetailsDiv">
+													<button class="slds-button slds-button_reset slds-accordion__summary-action" onClick="toggleAdditionals({!Product.Index}); return false;">
+														<span id="additionalsButton{!Product.Index}" class="slds-truncate Elem{!IF(Product.ShowAditionals, 'Open', 'Closed')}">
+															Adicionales
+														</span>
+													</button>
+													<div id="additionalChecks{!Product.Index}" style="display: {!IF(Product.ShowAditionals, 'block', 'none')}; padding-top: 0.5rem;">
+														<apex:outputPanel rendered="{!Product.AdditionalsSelectOptions.size == 0}">
+															{!$Label.Producto_sin_adicionales}
+														</apex:outputPanel>
+														<apex:selectCheckboxes value="{!Product.SelectedAdditionals}" layout="pageDirection" disabled="{!AllowOnlyDiscounts}">
+															<apex:SelectOptions value="{!Product.AdditionalsSelectOptions}" />
+														</apex:selectCheckboxes>
+													</div>
+													<!-- ======================== -->
+												</div>
+												<!-- =================================== -->
+											</div>
+											<!-- =================================== -->
+											<div id="Discounts" class="discountsDetailsDiv">
+												<button class="slds-button slds-button_reset slds-accordion__summary-action" onClick="toggleDiscounts({!Product.Index}); return false;">
+													<span id="discountsButton{!Product.Index}" class="slds-truncate Elem{!IF(Product.ShowDiscounts, 'Open', 'Closed')}">
+														Descuentos
+													</span>
+												</button>
+												<div id="discountsChecks{!Product.Index}" style="display: {!IF(Product.ShowDiscounts, 'block', 'none')}; padding-top: 0.5rem;">
+													<table>
+														<tr>
+															<th>
+																Descuento
+															</th>
+															<th>
+																Fecha de inicio
+															</th>
+															<th>
+																Fecha de fin
+															</th>
+														</tr>
+														<apex:repeat value="{!Product.Discounts}" var="DiscountWrp">
+															<tr>
+																<td>
+																	<apex:inputCheckbox value="{!DiscountWrp.IsActive}"
+																		id="activeDiscountCbx"
+																		disabled="{!NOT(DiscountWrp.CanBeChanged)}"
+																	/>
+																	<apex:outputLabel value="{!DiscountWrp.Discount.Name}"
+																		for="activeDiscountCbx"
+																		style="max-width: 12em; display: inline-flex;"
+																	/>
+																</td>
+																<td>
+																	<apex:outputPanel rendered="{!DiscountWrp.CanBeChanged}">
+																		<apex:inputField value="{!DiscountWrp.Relation.Fecha_inicio__c}" />
+																	</apex:outputPanel>
+																	<apex:outputPanel rendered="{!NOT(DiscountWrp.CanBeChanged)}">
+																		<apex:outputField value="{!DiscountWrp.Relation.Fecha_inicio__c}" />
+																	</apex:outputPanel>
+																</td>
+																<td>
+																	<apex:outputPanel rendered="{!DiscountWrp.CanBeChanged}">
+																		<apex:inputField value="{!DiscountWrp.Relation.Fecha_Fin__c}" />
+																	</apex:outputPanel>
+																	<apex:outputPanel rendered="{!NOT(DiscountWrp.CanBeChanged)}">
+																		<apex:outputField value="{!DiscountWrp.Relation.Fecha_Fin__c}" />
+																	</apex:outputPanel>
+																</td>
+																<td>
+																	<apex:outputPanel rendered="{!OR(
+																			DiscountWrp.Discount.Codigo_de_descuento__c == 'ZDV0',
+																			DiscountWrp.Discount.Codigo_de_descuento__c == 'ZDR0'
+																		)}"
+																	>
+																		<apex:outputPanel rendered="{!DiscountWrp.CanBeChanged}">
+																			<apex:inputField value="{!DiscountWrp.Relation.Valor__c}" style="width: 6em;"/>%
+																		</apex:outputPanel>
+																		<apex:outputPanel rendered="{!NOT(DiscountWrp.CanBeChanged)}">
+																			<apex:outputField value="{!DiscountWrp.Relation.Valor__c}" style="width: 6em;"/>
+																		</apex:outputPanel>
+																	</apex:outputPanel>
+																</td>
+															</tr>
+														</apex:repeat>
+													</table>
+													<apex:outputPanel rendered="{!Product.Discounts.size == 0}">
+														{!$Label.Producto_sin_descuentos}
+													</apex:outputPanel>
+												</div>
+											</div>
+											<!-- =========================================== -->
+											<!-- Product amounts for simulation -->
+											<div id="simAmnt" class="simAmntDiv">
+												<button class="slds-button slds-button_reset slds-accordion__summary-action" onClick="toggleSimAmnt({!Product.Index}); return false;">
+													<span id="simButton{!Product.Index}" class="slds-truncate Elem{!IF(Product.ShowSimulation, 'Open','Closed')}">
+														Cantidades para cotizaci&oacute;n
+													</span>
+												</button>
+												<div id="simAmounts{!Product.Index}" style="display: {!IF(Product.ShowSimulation, 'block','none')}; padding-top: 0.5rem;">
+													<apex:outputPanel id="positionsTable">
+														<table class="centeredTable">
+															<!-- Headers -->
+															<tr>
+																<th>
+																	<!-- Add/Remove position button -->
+																</th>
+																<th>
+																	Tratamiento IVA
+																</th>
+																<th>
+																	Provincia
+																</th>
+																<th>
+																	En transito?
+																</th>
+																<th>
+																	Cantidad
+																</th>
+															</tr>
+															<!-- Position adding -->
+															<tr>
+																<td>
+																	<apex:commandButton action="{!Product.addPosition}"
+																		value="+"
+																		styleClass="slds-button slds-button_neutral smallerButton"
+																		rerender="positionsTable"
+																	/>
+																</td>
+																<td>
+																	<apex:selectList value="{!Product.nextPosition.ivaTreatment}" size="1">
+																		<apex:selectOptions value="{!ivaTreatments}"/>
+																	</apex:selectList>
+																</td>
+																<td>
+																	<apex:selectList value="{!Product.nextPosition.provinceCode}" size="1">
+																		<apex:selectOptions value="{!provinceOptions}"/>
+																	</apex:selectList>
+																</td>
+																<td>
+																	<apex:inputCheckbox value="{!Product.nextPosition.isInTransit}"/>
+																</td>
+															</tr>
+															<!-- Positions -->
+															<apex:repeat value="{!Product.Positions}" var="Position">
+																<tr>
+																	<td>
+																		<apex:commandLink action="{!Product.removePosition}"
+																			value="-"
+																			styleClass="slds-button slds-button_destructive smallerButton"
+																			rerender="positionsTable"
+																		>
+																			<apex:param name="positionToRemove"
+																				assignTo="{!Product.positionToRemove}"
+																				value="{!Position.index}"
+																			/>
+																		</apex:commandLink>
+																	</td>
+																	<td>
+																		{!ivaTreatmentMap[Position.ivaTreatment]}
+																	</td>
+																	<td>
+																		{!provinceMap[Position.provinceCode]}
+																	</td>
+																	<td>
+																		<apex:inputCheckbox value="{!Position.isInTransit}" disabled="true"/>
+																	</td>
+																	<td>
+																		<input type="text" />
+																	</td>
+																</tr>
+															</apex:repeat>
+														</table>
+													</apex:outputPanel>
+												</div>
+											</div>
+											<!-- End Product amounts for simulation -->
+										</div>
+										<!-- End Product details -->
+										<!-- =========================================== -->
+									</section>
+								</li>
+							</apex:repeat>
+							<!-- End products -->
+							<!-- ===================================================== -->
+						</ul>
+					</apex:outputPanel>
+				</div>
+				<footer class="slds-card__footer">
+					<a
+						class="slds-button slds-button_success"
+						onclick="prepareSimulation(); return false;"
+					>
+						Cotizar
+					</a>
+					<a
+						class="slds-button slds-button_neutral"
+						href="/{!ReturnRecord}"
+					>
+						Cancelar y Volver
+					</a>
+					<a
+						class="slds-button slds-button_brand"
+						href="/{!ReturnRecord}"
+					>
+						No Guardar y volver
+					</a>
+				</footer>
+			</article>
+		</div>
+	</apex:form>
+	
+	<!-- ======================================================== -->
+	<!-- Spinner -->
+	<div id="spinner" class="slds-scope">
+		<div class="slds-spinner_container">
+			<div role="status" class="slds-spinner slds-spinner_medium slds-spinner_brand">
+				<span class="slds-assistive-text">Loading</span>
+				<div class="slds-spinner__dot-a"></div>
+				<div class="slds-spinner__dot-b"></div>
+			</div>
+		</div>
+	</div>
+	<!-- ======================================================== -->
+	<div id="simulation-result" style="display: none;">
+		<section role="dialog" tabindex="-1" aria-label="Meaningful description of the modal content" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+			<div class="slds-modal__container" style="align-items: center; width: 100%; max-width: 100%;">
+				<header class="slds-modal__header slds-modal__header_empty">
+					<button
+						class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+						title="Cerrar"
+						onclick="closeSimModal(); return false;"
+					>
+						<svg class="slds-button__icon slds-button__icon_large" aria-hidden="true">
+							<use xmlns:xlink="http://www.w3.org/1999/xlink"
+								xlink:href="{!URLFOR($Asset.SLDS, 'assets/icons/utility-sprite/svg/symbols.svg#close')}"
+							/>
+						</svg>
+						<span class="slds-assistive-text">Cerrar</span>
+					</button>
+				</header>
+				<div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+					<h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">
+						Cotizaci&oacute;n
+					</h2>
+					<br/>
+					<table class="centeredTable">
+						<tr>
+							<th>Producto</th>
+							<th>Tratamiento IVA</th>
+							<th>Provincia</th>
+							<th>En transito?</th>
+							<th>Cantidad</th>
+							<th>Costo</th>
+							<th>Costo con iva</th>
+						</tr>
+						<!-- TODO Remove hardcode -->
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						<tr>
+							<td>AMBULANCIA DE APOY</td>
+							<td>Exento</td>
+							<td>Buenos Aires</td>
+							<td><input type="checkbox" disabled="true" value="true" /></td>
+							<td>32</td>
+							<td>$357.00</td>
+							<td>$431.97</td>
+						</tr>
+						
+					</table>
+				</div>
+			</div>
+		</section>
+		<div
+			class="slds-backdrop slds-backdrop_open"
+			onclick="closeSimModal(); return false;"
+		/>
+	</div>
+	
+</apex:page>

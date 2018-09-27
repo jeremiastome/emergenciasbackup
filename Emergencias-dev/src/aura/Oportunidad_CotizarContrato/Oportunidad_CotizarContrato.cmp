@@ -1,0 +1,161 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" controller="Oportunidad_CotizarContratoController">
+	<ltng:require scripts="{!$Resource.XappiaUtils}" afterScriptsLoaded="{!c.doInit}" />
+	
+	<aura:attribute name="recordId" type="String" />
+	<aura:attribute name="isLoading" type="boolean" default="false" />
+	<aura:attribute name="canSimulate" type="boolean" default="false" />
+	<aura:attribute name="showModal" type="boolean" default="false" />
+	<aura:attribute name="simulationResult" type="Object" default="{}" />
+	<aura:attribute name="oppRecord" type="Opportunity" />
+	
+	<force:recordData aura:id="forceRecord"
+		recordId="{!v.recordId}"
+		targetFields="{!v.oppRecord}"
+		recordUpdated="{!c.doInit}"
+		fields="Contrato__c"
+		mode="VIEW"
+	/>
+	
+	<aura:if isTrue="{!v.canSimulate}">
+		<lightning:button variant="brand" label="Cotizar contrato" onclick="{!c.simulate}" />
+	</aura:if>
+	<aura:if isTrue="{!v.showModal}">
+		<div>
+			<section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+				<div class="slds-modal__container">
+					<header class="slds-modal__header">
+						<lightning:buttonIcon iconName="utility:close"
+							variant="bare-inverse"
+							alternativeText="Cerrar"
+							iconClass="dark"
+							size="large"
+							class="slds-modal__close"
+							onclick="{!c.closeModal}"
+						/>
+						<h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">
+							Cotizaci&oacute;n
+						</h2>
+					</header>
+					<div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+						<table class="centeredTable">
+							<tr>
+								<th></th>
+								<th>Producto</th>
+								<th>Tratamiento IVA</th>
+								<th>Provincia</th>
+								<th>En transito?</th>
+								<th>Cantidad</th>
+								<th>Costo</th>
+								<th>Costo con iva</th>
+							</tr>
+							<aura:iteration items="{!v.simulationResult.positions}" var="position" indexVar="i">
+								<tr
+									onclick="{!c.toggleSimDetails}"
+									data-posIndex="{!i}"
+									style="border-top: #e0e0e0 solid 1px;"
+								>
+									<td style="font-weight: bold; font-size: 1.3em; min-width: 0.7em; text-align: center;">
+										{!position.showDetails?'-':'+'}
+									</td>
+									<td>{!position.productNumber}</td>
+									<td>{!position.ivaTreatment}</td>
+									<td>{!position.provinceCode}</td>
+									<td>{!position.isInTransit}</td>
+									<td>
+										{!position.amount}
+									</td>
+									<td>
+										${!position.noIvaPrice}
+									</td>
+									<td>
+										<aura:if isTrue="{!position.hasIva}">
+											${!position.totalPrice}
+											<aura:set attribute="else">
+												&nbsp;-----
+											</aura:set>
+										</aura:if>
+									</td>
+								</tr>
+								<aura:if isTrue="{!position.showDetails}">
+									<tr onclick="{!c.toggleSimDetails}" data-posIndex="{!i}">
+										<td></td>
+										<td colspan="2" style="padding-left: 3%;">Precio base</td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td>
+											${!position.basePrice}
+										</td>
+										<td></td>
+									</tr>
+									<aura:if isTrue="{!position.surcharges.length > 0}">
+										<aura:iteration items="{!position.surcharges}" var="condition">
+											<tr onclick="{!c.toggleSimDetails}" data-posIndex="{!i}">
+												<td></td>
+												<td colspan="2" style="padding-left: 3%;">Recargo</td>
+												<td></td>
+												<td></td>
+												<td></td>
+												<td>
+													${!condition.price}
+												</td>
+												<td></td>
+											</tr>
+										</aura:iteration>
+									</aura:if>
+									<aura:if isTrue="{!position.discounts.length > 0}">
+										<aura:iteration items="{!position.discounts}" var="condition">
+											<tr onclick="{!c.toggleSimDetails}" data-posIndex="{!i}">
+												<td></td>
+												<td colspan="2" style="padding-left: 3%;">Descuento</td>
+												<td></td>
+												<td></td>
+												<td></td>
+												<td>
+													${!condition.price}
+												</td>
+												<td></td>
+											</tr>
+										</aura:iteration>
+									</aura:if>
+									<aura:if isTrue="{!position.hasIva}">
+										<tr onclick="{!c.toggleSimDetails}" data-posIndex="{!i}">
+											<td></td>
+											<td colspan="2" style="padding-left: 3%;">IVA</td>
+											<td></td>
+											<td></td>
+											<td></td>
+											<td>
+												${!position.priceIVA}
+											</td>
+											<td></td>
+										</tr>
+									</aura:if>
+								</aura:if>
+							</aura:iteration>
+							<tr style="border-top: #e0e0e0 solid 1px;">
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td style="font-weight: bold;">TOTAL:</td>
+								<td>
+									${!v.simulationResult.totalPrice}
+								</td>
+							</tr>
+						</table>
+					</div>
+					<footer class="slds-modal__footer">
+						<lightning:button variant="neutral" label="Cerrar" onclick="{!c.closeModal}" />
+					</footer>
+				</div>
+			</section>
+			<div class="slds-backdrop slds-backdrop_open"></div>
+		</div>
+	</aura:if>
+	<aura:if isTrue="{!v.isLoading}">
+		<lightning:spinner variant="brand" size="large"/>
+	</aura:if>
+</aura:component>

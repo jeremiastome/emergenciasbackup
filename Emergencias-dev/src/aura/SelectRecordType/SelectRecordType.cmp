@@ -1,0 +1,11 @@
+<aura:component implements="force:lightningQuickActionWithoutHeader" controller="SelectRecordTypeController">
+    <aura:handler name="init" action="{!c.doInit}" value="{!this}"/>
+    <aura:attribute name="options" type="List" />
+    <aura:attribute name="selectedValue" type="String"/>    
+
+    <lightning:select name="mySelect" label="Seleccione un tipo de cuenta:" value="{!v.selectedValue}" >
+        <aura:iteration items="{!v.options}" var="item">
+            <option text="{!item.text}" value="{!item.value}"/>
+        </aura:iteration>
+    </lightning:select>
+</aura:component>

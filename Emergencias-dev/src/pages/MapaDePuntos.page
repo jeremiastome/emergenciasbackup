@@ -1,0 +1,52 @@
+<apex:page standardController="Zona__c">
+	<!-- Google maps APIkey: AIzaSyDqLVi4VUWGY89iWkBFqph8cUjZ2aSiC10 -->
+	<style>
+		#map {
+			height: 400px;
+			
+			/*height: 100%;*/
+		}
+	</style>
+	<apex:includeScript value="https://maps.googleapis.com/maps/api/js?key=AIzaSyDqLVi4VUWGY89iWkBFqph8cUjZ2aSiC10&callback=initMap"
+		loadOnReady="true"
+	/>
+	<script>
+		var nextMarkerId = 0;
+		var map;
+		var vertList = {!Zona__c.Posicion__c};
+		var myPoly;
+		
+		function initMap() {
+			bounds = new google.maps.LatLngBounds();
+			for (var i = 0; i < vertList.length; i++) {
+				bounds.extend(vertList[i]);
+			}
+			
+			map = new google.maps.Map(document.getElementById('map'), {
+				center: bounds.getCenter(),
+				zoom: 13,
+				draggable: false,
+				clickableIcons: false,
+				scaleControl: false,
+				gestureHandling: "none",
+				scrollwheel: false,
+				streetViewControl: false,
+				zoomControl: false,
+				disableDoubleClickZoom: true,
+				keyboardShortcuts: false
+			});
+			map.fitBounds(bounds);
+			
+			myPoly = new google.maps.Polygon({
+				paths: vertList,
+				strokeColor: '#FF0000',
+				strokeOpacity: 0.8,
+				strokeWeight: 2,
+				fillColor: '#FF0000',
+				fillOpacity: 0.35
+			});
+			myPoly.setMap(map);
+		}
+	</script>
+	<div id="map"/>
+</apex:page>

@@ -1,0 +1,20 @@
+<aura:component >
+    <aura:registerEvent name="fileUploaded" type="c:UploadFileEvent"/>
+
+    <aura:attribute name="fileToBeUploaded" type="Object[]"/>
+    <aura:attribute name="archivoCargado" type="String" default="No cargó ningún archivo." />
+    <aura:method name="buttonClicked" action="{!c.buttonClicked}" access="PUBLIC">
+        <aura:attribute name="actionName" type="String" />
+    </aura:method>
+
+    <div class="slds-grid slds-wrap">
+        <lightning:input aura:id="file-input" type="file"
+                         files="{!v.fileToBeUploaded}"
+                         accept=".csv"
+                         label=""
+                         name="file" multiple="false"
+                         onchange="{!c.handleUploadFinished}"
+                         class="slds-file-selector__dropzone slds-file-selector__dropzone .slds-file-selector__text"/>
+    </div>
+    <ui:outputText value="{!v.archivoCargado}"/>
+</aura:component>

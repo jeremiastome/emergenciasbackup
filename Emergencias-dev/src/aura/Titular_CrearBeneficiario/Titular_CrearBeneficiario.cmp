@@ -1,0 +1,24 @@
+<aura:component implements="force:appHostable,flexipage:availableForRecordHome,force:hasRecordId">
+	
+	<aura:attribute name="recordId" type="String" />
+	<aura:attribute name="holder" type="object" />
+	
+	<force:recordData recordId="{!v.recordId}"
+		layoutType="FULL"
+		fields="Contrato__c, Contrato__r.Canal_de_Distribucion__c"
+		targetFields="{!v.holder}"
+	/>
+	
+	<lightning:card >
+		<aura:set attribute="title">
+			Crear beneficiarios
+		</aura:set>
+		<div style="margin-left: 2em;">
+			<c:CreateRecipientButtons holderId="{!v.holder.Id}"
+				contractId="{!v.holder.Contrato__c}"
+				distributionChannel="{!v.holder.Contrato__r.Canal_de_Distribucion__c}"
+			/>
+		</div>
+	</lightning:card>
+	
+</aura:component>

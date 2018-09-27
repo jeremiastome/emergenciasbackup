@@ -1,0 +1,8 @@
+<aura:component >
+    <aura:registerEvent name="buttonClicked" type="c:ClickButtonEvent"/>
+    
+    <aura:attribute name="buttonLabel" type="String"/>
+    <aura:attribute name="buttonVariant" type="String"/>
+    <lightning:button label="{!v.buttonLabel}" variant="{!v.buttonVariant}" onclick="{!c.click}"/> 
+    
+</aura:component>

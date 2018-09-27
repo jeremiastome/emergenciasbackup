@@ -1,0 +1,60 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" controller="Contrato_AsignarContactosController">
+	<ltng:require scripts="{!$Resource.XappiaUtils}" afterScriptsLoaded="{!c.init}" />
+	
+	<aura:attribute name="recordId" type="String" />
+	<aura:attribute name="contractRecord" type="Object" />
+	<aura:attribute name="contacts" type="Object[]" />
+	<aura:attribute name="loadCount" type="Decimal" default="0" />
+	<aura:attribute name="isLoading" type="boolean" default="true" />
+	<aura:attribute name="showFields" type="boolean" default="true" />
+	<aura:attribute name="message" type="String" />
+	<aura:attribute name="severity" type="String" />
+    
+	<lightning:card >
+        <aura:if isTrue="{!!empty(v.message)}">
+			<ui:message severity="{!v.severity}">
+				<aura:unescapedHtml value="{!v.message}"/>
+			</ui:message>
+		</aura:if>
+		<aura:set attribute="title">
+			Contactos de contrato
+		</aura:set>
+
+		<p class="slds-p-horizontal_small">
+			<h6 style="color:grey; padding-bottom:5px;">Solo apareceran contactos relacionados a la cuenta.</h6>
+			<aura:if isTrue="{!v.isLoading}">
+            	<aura:set attribute="else">
+                        
+                	<aura:if isTrue="{!v.showFields}">
+                        <lightning:combobox name="Cobranza"
+                            label="Contacto Cobranza"
+                            placeholder="{!v.contacts[0].label}"
+                            value="{!v.contractRecord.Contacto_Cobranza__c}"
+                            onchange="{!c.handleOptionSelected}"
+                            options="{!v.contacts}"
+                        />
+                        <lightning:combobox name="Facturacion"
+                            label="Contacto Facturación"
+                            placeholder="{!v.contacts[0].label}"
+                            value="{!v.contractRecord.Contacto_Facturacion__c}"
+                            onchange="{!c.handleOptionSelected}"
+                            options="{!v.contacts}"
+                        />
+                        <lightning:combobox name="Delivery"
+                            label="Contacto de delivery"
+                            placeholder="{!v.contacts[0].label}"
+                            value="{!v.contractRecord.Contacto_de_delivery__c}"
+                            onchange="{!c.handleOptionSelected}"
+                            options="{!v.contacts}"
+                        />
+                            
+                		</aura:if>
+                    </aura:set>
+				<lightning:spinner variant="brand" size="large"/>
+			</aura:if>
+		</p>
+		<aura:set attribute="footer">
+			<lightning:button variant="brand" label="Guardar" onclick="{!c.save}" />
+		</aura:set>
+	</lightning:card>
+</aura:component>

@@ -1,0 +1,74 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" controller="Cuenta_DetalleContratoAsociadoController">
+	<ltng:require scripts="{!$Resource.XappiaUtils}" afterScriptsLoaded="{!c.init}"/>
+	<aura:attribute name="recordId" type="String" />
+	<aura:attribute name="isLoading" type="Boolean" default="true" />
+	<aura:attribute name="contracts" type="Object[]" default="[]" />
+	
+	<!-- 27
+	<br/> -->
+	
+	<div class="slds-text-heading_medium">
+		Detalles de contratos relacionados
+	</div>
+	<aura:iteration items="{!v.contracts}" var="contract" indexVar="contractIndex">
+		<lightning:card >
+			<aura:set attribute="title">
+				<a onclick="{!c.goToRecord}" record="{!contract.Id}">
+					{!contract.Numero_Unico_de_Contrato__c}
+				</a>
+			</aura:set>
+			<h2 style="margin-left: 2%; font-weight: bold; font-size: 1.15em;">
+				Titulares:
+			</h2>
+			<ul class="slds-accordion">
+				<aura:iteration items="{!contract.holders}" var="holder" indexVar="holderIndex">
+					<li class="slds-accordion__list-item">
+						<section class="{!if(holder.showDetails, 'slds-accordion__section slds-is-open', 'slds-accordion__section')}">
+							<div class="slds-accordion__summary">
+								<h3 class="slds-text-heading_small slds-accordion__summary-heading">
+									<a
+										class="slds-accordion__summary-action"
+										onclick="{!c.toggleHolderDetails}"
+										holder="{!holderIndex}"
+										contract="{!contractIndex}"
+									>
+										<lightning:icon class="slds-accordion__summary-action-icon slds-button__icon slds-button__icon_left"
+											iconName="utility:switch"
+											size="x-small"
+										/>
+										{!holder.Cliente__r.Name}
+									</a>
+								</h3>
+								<button class="slds-button slds-button_neutral" onclick="{!c.goToRecord}" record="{!holder.Id}">
+									Ir al Titular
+								</button>
+							</div>
+							<div aria-hidden="false" class="slds-accordion__content" id="accordion-details-01">
+								Beneficiarios:
+								<ul style="list-style: initial;margin-left: 6%;">
+									<aura:iteration items="{!holder.Beneficiarios__r}" var="recipient">
+										<li>
+											<a  onclick="{!c.goToRecord}" record="{!recipient.Id}">
+												{!recipient.Nombre__c}&nbsp;{!recipient.Apellido__c}
+											</a>
+										</li>
+									</aura:iteration>
+								</ul>
+							</div>
+						</section>
+					</li>
+				</aura:iteration>
+			</ul>
+		</lightning:card>
+	</aura:iteration>
+	
+	<aura:if isTrue="{!v.isLoading}" >
+		<div style="position:relative; min-height: 45px;">
+			<div role="status" class="slds-spinner slds-spinner_brand slds-spinner_medium">
+				<span class="slds-assistive-text">Cargando</span>
+				<div class="slds-spinner__dot-a"></div>
+				<div class="slds-spinner__dot-b"></div>
+			</div>
+		</div>
+	</aura:if>
+</aura:component>

@@ -1,0 +1,53 @@
+<aura:component access="global">
+  
+  <aura:attribute name="ticket" type="Object" />
+
+  <article class="slds-tile slds-hint-parent">
+
+    <div class="slds-grid slds-grid_align-spread slds-has-flexi-truncate">
+      <h3 class="slds-tile__title slds-truncate slds-text-heading_small" title="{!v.ticket.NumeroSolicitud}">{!v.ticket.NumeroSolicitud}</h3>
+    </div>
+
+    <div class="slds-tile__detail">
+
+      <dl class="slds-dl--horizontal">
+        <dt class="slds-dl--horizontal__label">
+          <p class="slds-truncate" title="Instante">Instante:</p>
+        </dt>
+        <dd class="slds-dl--horizontal__detail slds-tile__meta">
+          <p class="slds-truncate" title="{!v.ticket.InstanteSF}"><ui:outputDate value="{!v.ticket.InstanteSF}"/></p>
+        </dd>
+
+        <dt class="slds-dl--horizontal__label">
+          <p class="slds-truncate" title="Numero de ticket">Numero de ticket:</p>
+        </dt>
+        <dd class="slds-dl--horizontal__detail slds-tile__meta">
+          <p class="slds-truncate" title="{!v.ticket.NumeroTicket}"><ui:outputText value="{!v.ticket.NumeroTicket}"/></p>
+        </dd>
+
+        <dt class="slds-dl--horizontal__label">
+          <p class="slds-truncate" title="Motivo">Motivo:</p>
+        </dt>
+        <dd class="slds-dl--horizontal__detail slds-tile__meta">
+          <p class="slds-truncate" title="{!v.ticket.MotivoTicket}"><ui:outputText value="{!v.ticket.MotivoTicket}"/></p>
+        </dd>
+
+        <dt class="slds-dl--horizontal__label">
+          <p class="slds-truncate" title="Resolucion">Resolución:</p>
+        </dt>
+        <dd class="slds-dl--horizontal__detail slds-tile__meta">
+          <p class="slds-truncate" title="{!v.ticket.ResolucionSolicitud}"><ui:outputText value="{!v.ticket.ResolucionSolicitud}"/></p>
+        </dd>
+
+        <dt class="slds-dl--horizontal__label">
+          <p class="slds-truncate" title="Detalles">Detalles:</p>
+        </dt>
+        <dd class="slds-dl--horizontal__detail slds-tile__meta">
+          <p class="slds-truncate"><ui:outputURL target="_blank" label="Ver" value="{!v.ticket.VerDetalles}"/></p>
+        </dd>
+      </dl>
+
+    </div>
+  </article>
+
+</aura:component>

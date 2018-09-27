@@ -1,0 +1,821 @@
+<apex:page controller="AgregarProductosController" doctype="html-5.0" id="page">
+	<apex:includeScript value="{!$Resource.jQuery}"/>
+	<script>
+		var $j = jQuery.noConflict();
+		var productDisplayStatuses = [];
+		var additionalsDisplayStatuses = [];
+		var discountsDisplayStatuses = [];
+		var servicesDisplayStatuses = [];
+		var simulationDisplayStatuses = [];
+		var showSimulationOnRerender = true;
+
+		$j(document).ready(function () {
+			regenerateOpportunityLineItems();
+		});
+
+		function hideSpinner() {
+			$j("#spinner").hide();
+		}
+
+		function showSpinner() {
+			$j("#spinner").show();
+		}
+
+		function addProduct() {
+			showSpinner();
+			getProductToAddDetails();
+		}
+
+		function toggleAccordion(index) {
+			var isOpen = !productDisplayStatuses[index];
+
+			var prodSwitch = $j("#productSwitch" + index);
+			$j("#productContent" + index).toggle(400);
+			$j("[subId=productShowInput" + index + "]").val(isOpen);
+
+			var prodName = $j("#prodName" + index);
+			prodName.toggleClass("ElemOpen");
+			prodName.toggleClass("ElemClosed");
+
+			productDisplayStatuses[index] = isOpen;
+		}
+
+		function prepareToRemoveProduct(index) {
+			$j("[subId=ProductToRemove]").val(index);
+
+			removeProduct();
+		}
+
+		function toggleAdditionals(index) {
+			var isOpen = !additionalsDisplayStatuses[index];
+
+			$j("[subId=showAdditionalsInput" + index + "]").val(isOpen);
+			$j("#additionalChecks" + index).toggle(400);
+			var buttonElem = $j("#additionalsButton" + index);
+			buttonElem.toggleClass("ElemOpen");
+			buttonElem.toggleClass("ElemClosed");
+
+			additionalsDisplayStatuses[index] = isOpen;
+		}
+
+		function toggleDiscounts(index) {
+			var isOpen = !discountsDisplayStatuses[index];
+
+			$j("[subId=showDiscountsInput" + index + "]").val(isOpen);
+			$j("#discountsChecks" + index).toggle(400);
+			var buttonElem = $j("#discountsButton" + index);
+			buttonElem.toggleClass("ElemOpen");
+			buttonElem.toggleClass("ElemClosed");
+
+			discountsDisplayStatuses[index] = isOpen;
+		}
+
+		function toggleServices(index) {
+			var isOpen = !servicesDisplayStatuses[index];
+
+			$j("[subId=showServicesInput" + index + "]").val(isOpen);
+			$j("#servicesDetail" + index).toggle(400);
+			var buttonElem = $j("#servicesButton" + index);
+			buttonElem.toggleClass("ElemOpen");
+			buttonElem.toggleClass("ElemClosed");
+
+			servicesDisplayStatuses[index] = isOpen;
+		}
+
+		function prepareSave(component) {
+			showSpinner();
+			save();
+		}
+
+		function toggleSimAmnt(index) {
+			var isOpen = !simulationDisplayStatuses[index];
+
+			$j("[subId=showSimulationInput" + index + "]").val(isOpen);
+			$j("#simAmounts" + index).toggle(400);
+			var buttonElem = $j("#simButton" + index);
+			buttonElem.toggleClass("ElemOpen");
+			buttonElem.toggleClass("ElemClosed");
+
+			simulationDisplayStatuses[index] = isOpen;
+		}
+
+		function prepareSimulation(){
+			showSimulationOnRerender = true;
+			showSpinner();
+			simulatePrice();
+		}
+
+		function showSimulation() {
+			if(showSimulationOnRerender) {
+				$j("#simulation-result").show();
+			}
+			hideSpinner();
+		}
+
+		function closeSimModal() {
+			$j("#simulation-result").hide();
+		}
+
+		function toggleSimDetails(trElem) {
+			//get the main row element (for when the user clicks a details row)
+			while(!trElem.hasClass("simMainRow")) {
+				trElem = trElem.prev();
+			}
+			//Toggle the details icon
+			var detailIcon = trElem.children(".simDetailIcon");
+			if(detailIcon.html() == "+") {
+				detailIcon.html("-");
+			}
+			else {
+				detailIcon.html("+");
+			}
+
+			//Actually toggle details
+			var toggleElem = trElem.next();
+			while(!toggleElem.hasClass("simTotalsRow") && !toggleElem.hasClass("simMainRow")) {
+				toggleElem.toggle();
+				toggleElem = toggleElem.next();
+			}
+		}
+
+
+
+		function hiddenOrNotInput(component) {
+            var product = component.name.substring(19,20);
+            var selected = component.children[component.selectedIndex].innerText;
+            var input = document.getElementById('page:form:products:'+product+':customDiscountValue');
+            input.parentElement.hidden = !selected.includes('A medida');
+        }
+	</script>
+	
+	<style>
+		.slds-scope .slds-spinner_container {
+			position: fixed;
+		}
+		
+		.mainCardContainer {
+			margin-top: 15px;
+			padding-left: 15%;
+			padding-right: 15%;
+		}
+		
+		span.ElemOpen:before {
+			content: "\002D";
+			font-weight: bold;
+			font-size: 1.3em;
+			min-width: 0.7em;
+			display: inline-block;
+			text-align: center;
+		}
+		
+		span.ElemClosed:before {
+			content: "\002B";
+			font-weight: bold;
+			font-size: 1.3em;
+			min-width: 0.7em;
+			display: inline-block;
+			text-align: center;
+		}
+		
+		.smallerButton {
+			line-height: 1.8em !important;
+			margin-bottom: 0.3em !important;
+			margin-top: 0.3em !important;
+			padding-left: 0.7em !important;
+			padding-right: 0.7em !important;
+		}
+		
+		.additionalsDetailsDiv {
+			border-left: 1px solid #d8dde6;
+		}
+		
+		.discountsDetailsDiv {
+			border-top: 1px solid #d8dde6;
+			border-bottom: 1px solid #d8dde6;
+			padding-bottom: 0.5em;
+			margin-bottom: 0.5em;
+		}
+
+        .discountsTable td, .discountsTable th {
+            padding-left: 0.45em;
+            padding-right: 0.45em;
+            padding-top: 0.30em;
+            padding-bottom: 0.30em;
+        }
+		
+		.detailsGrid {
+			margin-bottom: 0.2em;
+		}
+		
+		.centeredTable td, .centeredTable th {
+			text-align: center;
+			padding-left: 0.25em;
+			padding-right: 0.25em;
+		}
+		
+		.simDetailIcon {
+			font-weight: bold;
+			font-size: 1.3em;
+			min-width: 0.7em;
+			text-align: center;
+		}
+		
+		.simMainRow, .simTotalsRow {
+			border-top: #e0e0e0 solid 1px;
+		}
+		
+		.simulationTable td, .simulationTable th{
+			padding-left: 0.45em;
+			padding-right: 0.45em;
+		}
+	</style>
+	<apex:slds />
+	
+	<apex:form id="form">
+		<apex:actionFunction action="{!regenerateOpportunityLineItems}"
+			name="regenerateOpportunityLineItems"
+			rerender="ProductsSection"
+			oncomplete="hideSpinner(); return false;"
+		/>
+		<apex:actionFunction action="{!getProductToAddDetails}"
+			name="getProductToAddDetails"
+			rerender="ProductsSection"
+			oncomplete="hideSpinner(); return false;"
+		/>
+		<apex:actionFunction action="{!removeProduct}"
+			name="removeProduct"
+			rerender="ProductsSection"
+		/>
+		<apex:actionFunction action="{!simulatePrice}"
+			name="simulatePrice"
+			rerender="simulationResult, ErrorMessages"
+			oncomplete="showSimulation(); return false;"
+		/>
+		<apex:actionFunction action="{!save}"
+			name="save"
+			rerender="ProductsSection, ErrorMessages"
+			oncomplete="hideSpinner();"
+		/>
+		
+		<apex:inputHidden value="{!ProductToRemove}" html-subId="ProductToRemove" />
+		<!-- ===================================================================== -->
+		<div class="slds-scope mainCardContainer">
+			<article class="slds-card">
+				<div class="slds-card__header slds-grid">
+					<header class="slds-media slds-media_center slds-has-flexi-truncate">
+						{!IF(AllowOnlyDiscounts, '', 'Agregar productos')}
+					</header>
+				</div>
+				<div class="slds-card__body slds-card__body_inner">
+                    <apex:outputPanel id="ErrorMessages" >
+  			            <apex:pageMessages escape="false" />
+		            </apex:outputPanel>
+					<apex:outputPanel id="ProductsSection">
+
+						<apex:outputPanel rendered="{!NOT(AllowOnlyDiscounts)}">
+							<div>
+								Producto:&nbsp;
+								<apex:input list="{!AvailableProductsNames}" value="{!ProductToAdd}"/>&nbsp;&nbsp;
+								<apex:commandButton onclick="addProduct(); return false;"
+									value="Agregar producto"
+									styleClass="slds-button slds-button_brand"
+									rerender="ProductsSection"
+								/>
+							</div>
+						</apex:outputPanel>
+						<ul class="slds-accordion">
+							<!-- ===================================================== -->
+							<!-- Products -->
+							<apex:repeat value="{!Products}" var="Product" id="products">
+								<li class="slds-accordion__list-item">
+									<section class="slds-accordion__section slds-is-open">
+										<apex:inputHidden value="{!Product.ShowDetails}" html-subId="productShowInput{!Product.Index}" />
+										<apex:inputHidden value="{!Product.ShowAditionals}" html-subId="showAdditionalsInput{!Product.Index}" />
+										<apex:inputHidden value="{!Product.ShowDiscounts}" html-subId="showDiscountsInput{!Product.Index}" />
+										<apex:inputHidden value="{!Product.ShowServices}" html-subId="showServicesInput{!Product.Index}" />
+										<apex:inputHidden value="{!Product.ShowSimulation}" html-subId="showSimulationInput{!Product.Index}" />
+										<!-- =========================================== -->
+										<!-- Product header -->
+										<div style="display:inline-flex; width: 100%;" class="slds-accordion__summary">
+											<h3 class="slds-text-heading_small slds-accordion__summary-heading">
+												<button
+													id="productSwitch{!Product.Index}"
+													class="slds-button slds-button_reset slds-accordion__summary-action"
+													onclick="toggleAccordion({!Product.Index}); return false;"
+												>
+													<span id="prodName{!Product.Index}" class="slds-truncate Elem{!IF(Product.ShowDetails, 'Open', 'Closed')}">
+														{!Product.MainProduct.Numero__c}
+													</span>
+												</button>
+											</h3>
+											<!-- ================================== -->
+											<apex:outputPanel rendered="{!AND(NOT(AllowOnlyDiscounts), Product.CanBeDeleted)}">
+												<button class="slds-button slds-button_destructive" onclick="prepareToRemoveProduct({!Product.Index}); return false;">
+													<svg class="slds-button__icon slds-button__icon_left" aria-hidden="true">
+														<use xmlns:xlink="http://www.w3.org/1999/xlink"
+															xlink:href="{!URLFOR($Asset.SLDS, 'assets/icons/utility-sprite/svg/symbols.svg#clear')}"
+														/>
+													</svg>Eliminar
+												</button>
+											</apex:outputPanel>
+										</div>
+										<!-- End Product header -->
+										<!-- =========================================== -->
+										<!-- Product details -->
+										<div id="productContent{!Product.Index}" style="display:{!IF(Product.ShowDetails, 'block', 'none')}">
+											<div class="slds-grid detailsGrid">
+												<!-- =================================== -->
+												<div id="Services" class="slds-col slds-size_1-of-2">
+													<button class="slds-button slds-button_reset slds-accordion__summary-action" onClick="toggleServices({!Product.Index}); return false;">
+														<span id="servicesButton{!Product.Index}" class="slds-truncate Elem{!IF(Product.ShowServices, 'Open', 'Closed')}">
+															Servicios:
+														</span>
+													</button>
+													<div id="servicesDetail{!Product.Index}" style="display: {!IF(Product.ShowServices, 'block', 'none')}; padding-top: 0.5rem;">
+														<apex:outputPanel rendered="{!Product.Services.size > 0}">
+															<apex:repeat value="{!Product.Services}" var="Service">
+																<div>
+																	{!Service.Name}
+																</div>
+															</apex:repeat>
+														</apex:outputPanel>
+														<apex:outputPanel rendered="{!Product.Services.size == 0}">
+															{!$Label.Producto_sin_servicios}
+														</apex:outputPanel>
+													</div>
+												</div>
+												<!-- =================================== -->
+												<div id="Additionals" class="slds-col slds-size_1-of-2 additionalsDetailsDiv">
+													<button class="slds-button slds-button_reset slds-accordion__summary-action" onClick="toggleAdditionals({!Product.Index}); return false;">
+														<span id="additionalsButton{!Product.Index}" class="slds-truncate Elem{!IF(Product.ShowAditionals, 'Open', 'Closed')}">
+															Adicionales
+														</span>
+													</button>
+													<div id="additionalChecks{!Product.Index}" style="display: {!IF(Product.ShowAditionals, 'block', 'none')}; padding-top: 0.5rem;">
+														<apex:outputPanel rendered="{!Product.AdditionalsSelectOptions.size == 0}">
+															{!$Label.Producto_sin_adicionales}
+														</apex:outputPanel>
+														<apex:selectCheckboxes value="{!Product.SelectedAdditionals}" layout="pageDirection" disabled="{!AllowOnlyDiscounts}">
+															<apex:SelectOptions value="{!Product.AdditionalsSelectOptions}" />
+														</apex:selectCheckboxes>
+													</div>
+													<!-- ======================== -->
+												</div>
+												<!-- =================================== -->
+											</div>
+											<!-- =================================== -->
+
+
+
+
+
+
+
+
+
+
+
+											<apex:outputPanel id="discountsTable"> 
+											    <div id="Discounts" class="discountsDetailsDiv" style="padding-top: 0.5rem;">
+												    <button class="slds-button slds-button_reset slds-accordion__summary-action" onClick="toggleDiscounts({!Product.Index}); return false;">
+													    <span id="discountsButton{!Product.Index}" class="slds-truncate Elem{!IF(Product.ShowDiscounts, 'Open', 'Closed')}">
+														    Descuentos
+													    </span>
+												    </button>
+												    <div id="discountsChecks{!Product.Index}" style="display: {!IF(Product.ShowDiscounts, 'block', 'none')}; padding-top: 0.5rem;">
+                                                        <h5>
+                                                            *No olvide presionar el boton 
+                                                            <apex:image url="{!$Resource.AgregarDescuento}" width="30" height="30" style="padding-right=2rem;" /> 
+                                                            para agregar el descuento.
+                                                        </h5>
+													    <table class="discountsTable">
+														    <tr>
+                                                                <th>
+
+															    </th>
+															    <th>
+																    Descuento
+															    </th>
+															    <th>
+																    Fecha de inicio
+															    </th>
+															    <th>
+																    Fecha de fin
+															    </th>
+                                                                <th>
+																    Cantidad
+															    </th>
+														    </tr>
+                                                            <tr>
+                                                                <td>
+                                                                    <apex:commandButton action="{!Product.addDiscount}"
+																	    value="+"
+																	    styleClass="slds-button slds-button_neutral smallerButton"
+																	    rerender="discountsTable"
+																    />
+                                                                </td>
+						                                        <td>
+                                                                    <apex:selectlist value="{!Product.selectedDiscountType}" 
+                                                                                     size="1" 
+                                                                                     onchange="hiddenOrNotInput(this)"
+                                                                                     id="selected">
+                                                                        <apex:selectoptions value="{!Product.AvailableDiscountOptions}" />
+                                                                    </apex:selectlist>  
+                                                                    <script>
+                                                                        hiddenOrNotInput(document.getElementById('page:form:products:'+{!Product.index}+':selected'));
+                                                                    </script>
+						                                        </td>
+                                                                <td>
+                                                                    <apex:inputField value="{!Product.selectedDiscount.Fecha_inicio__c}" />
+                                                                </td>  
+                                                                <td>
+											                        <apex:inputField value="{!Product.selectedDiscount.Fecha_Fin__c}" />
+                                                                </td>                                                               
+                                                                <td>
+											                        <apex:inputField value="{!Product.selectedDiscount.Valor__c}" 
+                                                                                     id="customDiscountValue" 
+                                                                                     style="width: 6em;" />%
+                                                                </td>
+                                                            </tr>
+														    <apex:repeat value="{!Product.Discounts}" var="DiscountWrp">
+															        <tr>
+																        <td>
+                                                                            <apex:outputPanel rendered="{!(DiscountWrp.CanBeChanged)}">
+																		        <apex:commandLink action="{!Product.removeDiscount}"
+																			        value="-"
+																			        styleClass="slds-button slds-button_destructive smallerButton"
+																			        rerender="discountsTable"
+																		        >
+                                                                                    <apex:param name="discountToRemove"
+																				        assignTo="{!Product.discountToRemove}"
+																				        value="{!DiscountWrp.index}"
+																			        />
+																		        </apex:commandLink>
+                                                                            </apex:outputPanel>
+																        </td>
+                                                                        <td>
+                                                                	        <apex:outputLabel value="{!DiscountWrp.Discount.Name}"
+																		        for="activeDiscountCbx"
+																		        style="max-width: 12em; display: inline-flex;"
+																	        />
+                                                                        </td>
+																        <td>
+																	        <apex:outputPanel rendered="{!DiscountWrp.CanBeChanged}">
+																		        <apex:inputField value="{!DiscountWrp.Relation.Fecha_inicio__c}" />
+																	        </apex:outputPanel>
+																	        <apex:outputPanel rendered="{!NOT(DiscountWrp.CanBeChanged)}">
+																		        <apex:outputField value="{!DiscountWrp.Relation.Fecha_inicio__c}" />
+																	        </apex:outputPanel>
+																        </td>
+																        <td>
+																	        <apex:outputPanel rendered="{!DiscountWrp.CanBeChanged}">
+																		        <apex:inputField value="{!DiscountWrp.Relation.Fecha_Fin__c}" />
+																	        </apex:outputPanel>
+
+																	        <apex:outputPanel rendered="{!NOT(DiscountWrp.CanBeChanged)}">
+																		        <apex:outputField value="{!DiscountWrp.Relation.Fecha_Fin__c}" />
+																	        </apex:outputPanel>
+																        </td>
+																        <td>
+																	        <apex:outputPanel rendered="{!OR(
+																			        DiscountWrp.Discount.Codigo_de_descuento__c == 'ZDV0',
+																			        DiscountWrp.Discount.Codigo_de_descuento__c == 'ZDR0'
+																		        )}"
+																	        >
+																		        <apex:outputPanel rendered="{!DiscountWrp.CanBeChanged}">
+																			        <apex:inputField value="{!DiscountWrp.Relation.Valor__c}" style="width: 6em;"/>%
+																		        </apex:outputPanel>
+																		        <apex:outputPanel rendered="{!NOT(DiscountWrp.CanBeChanged)}">
+																			        <apex:outputField value="{!DiscountWrp.Relation.Valor__c}" style="width: 6em;"/>
+																		        </apex:outputPanel>
+																	        </apex:outputPanel>
+																        </td>
+															        </tr>
+														    </apex:repeat>
+													    </table>
+													    <apex:outputPanel rendered="{!Product.Discounts.size == 0}">
+														    {!$Label.Producto_sin_descuentos}
+													    </apex:outputPanel>
+												    </div>
+											    </div>
+                                            </apex:outputPanel>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+											<!-- =========================================== -->
+											<!-- Product amounts for simulation -->
+											<div id="simAmnt" class="simAmntDiv">
+												<button class="slds-button slds-button_reset slds-accordion__summary-action" onClick="toggleSimAmnt({!Product.Index}); return false;">
+													<span id="simButton{!Product.Index}" class="slds-truncate Elem{!IF(Product.ShowSimulation, 'Open','Closed')}">
+														Cantidades para cotizaci&oacute;n
+													</span>
+												</button>
+												<div id="simAmounts{!Product.Index}" style="display: {!IF(Product.ShowSimulation, 'block','none')}; padding-top: 0.5rem;">
+													<apex:outputPanel id="positionsTable">
+														<table class="centeredTable">
+															<!-- Headers -->
+															<tr>
+																<th>
+																	<!-- Add/Remove position button -->
+																</th>
+																<th>
+																	Tratamiento IVA
+																</th>
+																<th>
+																	Provincia
+																</th>
+																<th>
+																	En transito?
+																</th>
+																<th>
+																	Cantidad
+																</th>
+															</tr>
+															<!-- Position adding -->
+															<tr>
+																<td>
+																	<apex:commandButton action="{!Product.addPosition}"
+																		value="+"
+																		styleClass="slds-button slds-button_neutral smallerButton"
+																		rerender="positionsTable"
+																	/>
+																</td>
+																<td>
+																	<apex:selectList value="{!Product.nextPosition.ivaTreatment}" size="1">
+																		<apex:selectOptions value="{!ivaTreatments}"/>
+																	</apex:selectList>
+																</td>
+																<td>
+																	<apex:selectList value="{!Product.nextPosition.provinceCode}" size="1">
+																		<apex:selectOptions value="{!provinceOptions}"/>
+																	</apex:selectList>
+																</td>
+																<td>
+																	<apex:inputCheckbox value="{!Product.nextPosition.isInTransit}"/>
+																</td>
+															</tr>
+															<!-- Positions -->
+															<apex:repeat value="{!Product.Positions}" var="Position">
+																<tr>
+																	<td>
+																		<apex:commandLink action="{!Product.removePosition}"
+																			value="-"
+																			styleClass="slds-button slds-button_destructive smallerButton"
+																			rerender="positionsTable"
+																		>
+																			<apex:param name="positionToRemove"
+																				assignTo="{!Product.positionToRemove}"
+																				value="{!Position.index}"
+																			/>
+																		</apex:commandLink>
+																	</td>
+																	<td>
+																		{!ivaTreatmentMap[Position.ivaTreatment]}
+																	</td>
+																	<td>
+																		{!provinceMap[Position.provinceCode]}
+																	</td>
+																	<td>
+																		<apex:inputCheckbox value="{!Position.isInTransit}" disabled="true"/>
+																	</td>
+																	<td>
+																		<apex:inputText value="{!Position.amount}" />
+																	</td>
+																</tr>
+															</apex:repeat>
+														</table>
+													</apex:outputPanel>
+												</div>
+											</div>
+											<!-- End Product amounts for simulation -->
+										</div>
+										<!-- End Product details -->
+										<!-- =========================================== -->
+									</section>
+								</li>
+							</apex:repeat>
+							<!-- End products -->
+							<!-- ===================================================== -->
+						</ul>
+
+
+					</apex:outputPanel>
+				</div>
+				<footer class="slds-card__footer">
+					<a
+						class="slds-button slds-button_success"
+						onclick="prepareSimulation(); return false;"
+					>
+						Cotizar
+					</a>
+					<a
+						class="slds-button slds-button_neutral"
+						href="/{!ReturnRecord}"
+					>
+						Cancelar y Volver
+					</a>
+					<apex:commandButton onclick="prepareSave(this)"
+						value="Guardar y volver"
+						styleClass="slds-button slds-button_brand"
+						rerender="ProductsSection"
+					/>
+				</footer>
+			</article>
+		</div>
+	</apex:form>
+	<!-- ======================================================== -->
+	<!-- Spinner -->
+	<div id="spinner" class="slds-scope">
+		<div class="slds-spinner_container">
+			<div role="status" class="slds-spinner slds-spinner_medium slds-spinner_brand">
+				<span class="slds-assistive-text">Loading</span>
+				<div class="slds-spinner__dot-a"></div>
+				<div class="slds-spinner__dot-b"></div>
+			</div>
+		</div>
+	</div>
+	<!-- ======================================================== -->
+	<div id="simulation-result" style="display: none;">
+		<section
+			role="dialog"
+			tabindex="-1"
+			aria-modal="true"
+			class="slds-modal slds-fade-in-open"
+		>
+			<div class="slds-modal__container" style="align-items: center; width: 100%; max-width: 100%;">
+				<header class="slds-modal__header slds-modal__header_empty">
+					<button
+						class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+						title="Cerrar"
+						onclick="closeSimModal(); return false;"
+					>
+						<svg class="slds-button__icon slds-button__icon_large" aria-hidden="true">
+							<use xmlns:xlink="http://www.w3.org/1999/xlink"
+								xlink:href="{!URLFOR($Asset.SLDS, 'assets/icons/utility-sprite/svg/symbols.svg#close')}"
+							/>
+						</svg>
+						<span class="slds-assistive-text">Cerrar</span>
+					</button>
+				</header>
+				<div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+					<apex:outputPanel id="simulationResult">
+						<apex:outputPanel rendered="{!simulation != null}">
+							<h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">
+								Cotizaci&oacute;n
+							</h2>
+							<br/>
+							<apex:outputPanel rendered="{!NOT(simulation.failed)}">
+								<table class="simulationTable">
+									<tr>
+										<th></th>
+										<th>Producto</th>
+										<th>Tratamiento IVA</th>
+										<th>Provincia</th>
+										<th>En transito?</th>
+										<th>Cantidad</th>
+										<th>Costo</th>
+										<th>Costo con iva</th>
+									</tr>
+									<apex:repeat value="{!simulation.positions}" var="position">
+										<tr class="simMainRow" onclick="toggleSimDetails($j(this))">
+											<td class="simDetailIcon">+</td>
+											<td>{!position.productNumber}</td>
+											<td>{!ivaTreatmentMap[position.ivaTreatment]}</td>
+											<td>{!provinceMap[position.provinceCode]}</td>
+											<td>
+												<apex:outputText value="{0,choice,0#No|1#Si}" >
+													<apex:param value="{!IF(position.isInTransit, 1, 0)}"/>
+												</apex:outputText>
+											</td>
+											
+											<td>
+												<apex:outputText value="{0,number,#.###}" >
+													<apex:param value="{!position.amount}"/>
+												</apex:outputText>
+											</td>
+											<td>
+												<apex:outputText value="${0,number,0.00}" >
+													<apex:param value="{!position.noIvaPrice}"/>
+												</apex:outputText>
+											</td>
+											<td>
+												<apex:outputPanel rendered="{!position.priceIVA != 0}">
+													<apex:outputText value="${0,number,0.00}" >
+														<apex:param value="{!position.noIvaPrice + position.priceIVA}"/>
+													</apex:outputText>
+												</apex:outputPanel>
+												<apex:outputPanel rendered="{!position.priceIVA == 0}">
+													&nbsp;-----
+												</apex:outputPanel>
+											</td>
+										</tr>
+										<tr style="display: none;" onclick="toggleSimDetails($j(this))">
+											<td></td>
+											<td colspan="2" style="padding-left: 3%;">Precio base</td>
+											<td></td>
+											<td></td>
+											<td></td>
+											<td>
+												<apex:outputText value="${0,number,0.00}" >
+													<apex:param value="{!position.basePrice}"/>
+												</apex:outputText>
+											</td>
+											<td></td>
+										</tr>
+										<apex:repeat value="{!position.surcharges}" var="condition">
+											<tr style="display: none;" onclick="toggleSimDetails($j(this))">
+												<td></td>
+												<td colspan="2" style="padding-left: 3%;">Recargo</td>
+												<td></td>
+												<td></td>
+												<td></td>
+												<td>
+													<apex:outputText value="${0,number,0.00}" >
+														<apex:param value="{!condition.price}"/>
+													</apex:outputText>
+												</td>
+												<td></td>
+											</tr>
+										</apex:repeat>
+										<apex:repeat value="{!position.discounts}" var="condition">
+
+
+											<tr style="display: none;" onclick="toggleSimDetails($j(this))">
+												<td></td>
+												<td colspan="2" style="padding-left: 3%;">Descuento</td>
+												<td></td>
+												<td></td>
+												<td></td>
+												<td>
+													<apex:outputText value="${0,number,0.00}" >
+														<apex:param value="{!condition.price}"/>
+													</apex:outputText>
+												</td>
+												<td></td>
+											</tr>
+										</apex:repeat>
+										<apex:outputPanel rendered="{!position.priceIVA != 0}" layout="none">
+											<tr style="display: none;" onclick="toggleSimDetails($j(this))">
+												<td></td>
+												<td colspan="2" style="padding-left: 3%;">IVA</td>
+												<td></td>
+												<td></td>
+												<td></td>
+												<td>
+													<apex:outputText value="${0,number,0.00}" >
+														<apex:param value="{!position.priceIVA}"/>
+													</apex:outputText>
+												</td>
+												<td></td>
+											</tr>
+										</apex:outputPanel>
+									</apex:repeat>
+									<tr class="simTotalsRow">
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td style="font-weight: bold;">TOTAL:</td>
+										<td>
+											<apex:outputText value="${0,number,0.00}" >
+												<apex:param value="{!simulation.totalPrice}"/>
+											</apex:outputText>
+										</td>
+									</tr>
+								</table>
+							</apex:outputPanel>
+							<apex:outputPanel rendered="{!simulation.failed}">
+								<b>Error:</b> {!simulation.errorMessage}
+							</apex:outputPanel>
+						</apex:outputPanel>
+						<apex:outputPanel rendered="{!simulation == null}">
+							<script>
+								showSimulationOnRerender = false;
+							</script>
+						</apex:outputPanel>
+					</apex:outputPanel>
+				</div>
+			</div>
+		</section>
+		<div
+			class="slds-backdrop slds-backdrop_open"
+			onclick="closeSimModal(); return false;"
+		/>
+	</div>
+</apex:page>

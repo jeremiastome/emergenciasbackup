@@ -1,0 +1,9 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" controller="Cuenta_AutosetCUITController" >
+	<ltng:require scripts="{!$Resource.XappiaUtils}"/>
+	
+	<aura:attribute name="recordId" type="String" />	
+	<aura:attribute name="isLoading" type="boolean" default="true" />
+	
+
+	<lightning:button variant="brand" label="CUIL" onclick="{!c.AutosetCUIT}" />
+</aura:component>

@@ -1,0 +1,22 @@
+<aura:component implements="force:lightningQuickActionWithoutHeader,force:hasRecordId" controller="UploadTitularesController">
+
+    <aura:handler name="fileUploaded" event="c:UploadFileEvent" action="{!c.onFileUploaded}"/>
+    <aura:handler name="buttonClicked" event="c:ClickButtonEvent"
+                  action="{!c.click}"/>
+
+    <aura:attribute name="recordId" type="String" />
+    <lightning:spinner aura:id="mySpinner" class="slds-hide"/>
+    
+    <lightning:card title="Cargar titulares" iconName="action:upload" variant="brand">
+        <div aura:id="divMessage"></div>
+        <c:UploadFile aura:id="uploadFile"/>
+        <br/>
+        <br/>
+        <c:SelectRecordType aura:id="selectRecordType"/>
+        <br/>
+        <div align="right">
+            <c:Button buttonLabel="Cancelar" buttonVariant="neutral"/>
+            <c:Button buttonLabel="Aceptar" buttonVariant="brand"/>
+        </div>
+    </lightning:card>
+</aura:component>

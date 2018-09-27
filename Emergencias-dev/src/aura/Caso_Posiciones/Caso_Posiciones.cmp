@@ -1,0 +1,31 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" controller="WSGetPositionsFromSAP">
+    
+	<ltng:require scripts="{!$Resource.XappiaUtils}" />
+	<aura:attribute name="recordId" type="String" />
+	<aura:attribute name="isLoading" type="boolean" default="false" />
+	<aura:attribute name="message" type="String" />
+	<aura:attribute name="severity" type="String" />
+    
+
+	<div>
+		<aura:if isTrue="{!v.isLoading != true}" >
+			<aura:if isTrue="{!!empty(v.message)}">
+				<ui:message severity="{!v.severity}">
+					<aura:unescapedHtml value="{!v.message}"/>
+				</ui:message>
+			</aura:if>
+
+			<lightning:button variant="neutral" label="Editar posiciones" onclick="{!c.callSAP}" />	
+			
+			<aura:set attribute="else">
+				<div style="position:relative; min-height: 45px;">
+					<div role="status" class="slds-spinner slds-spinner_brand slds-spinner_medium">
+						<span class="slds-assistive-text">Cargando</span>
+						<div class="slds-spinner__dot-a"></div>
+						<div class="slds-spinner__dot-b"></div>
+					</div>
+				</div>
+			</aura:set>
+		</aura:if>
+	</div>
+</aura:component>

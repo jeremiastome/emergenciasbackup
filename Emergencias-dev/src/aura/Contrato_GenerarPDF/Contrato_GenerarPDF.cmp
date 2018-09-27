@@ -1,0 +1,5 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId">
+	<aura:attribute name="recordId" type="String" />
+	
+	<lightning:button variant="neutral" label="Generar Contrato PDF" onclick="{!c.BringAsignmentPage}" />	
+</aura:component>

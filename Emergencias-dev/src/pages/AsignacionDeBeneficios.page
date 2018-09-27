@@ -1,0 +1,488 @@
+<apex:page controller="AsignacionDeBeneficiosController" >
+	<apex:includeScript value="{!$Resource.jQuery}"/>
+	<style>
+		.recipientUL:first-child {
+			border-top: 1px solid #d8dde6;
+		}
+		
+		.recipientLI {
+			border-bottom: 1px solid #d8dde6;
+			padding-left: 20px;
+			padding-top: 5px;
+			padding-bottom: 5px;
+		}
+		
+		.mainCardContainer {
+			margin-top: 15px;
+			padding-left: 15%;
+			padding-right: 15%;
+		}
+		
+		/* specify the td to force it over salesforce standard padding */
+		td.coverageTd {
+			white-space: nowrap;
+			padding: 5px;
+			vertical-align: top;
+		}
+		
+		.coverageDiv {
+			overflow-x: auto;
+			margin-right: 1.5em;
+		}
+		
+		.removeButtonDiv {
+			padding-right: 1rem;
+		}
+
+		.discountsTable {
+			table-layout: fixed;
+			width: 100%;
+		}
+
+		.discountsTable tr td {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		table.newRecipientInputTable {
+			border-collapse: separate;
+			border-spacing: 3px;
+		}
+		
+		.requiredField {
+			background-color: red;
+		}
+		
+		.requiredField, .notRequiredField {
+			/* required|notRequired */
+			margin-right: 0.2em;
+		}
+		
+		#toasty {
+			display: none;
+		}
+		
+		.directionInput {
+			width: 3em;
+		}
+	</style>
+	<script>
+		var $j = jQuery.noConflict();
+		var currentNewRecipientType;
+		var newRecipientDataByType = {
+			"Domicilio": {
+				"divId":"newHouseRecipient",
+				"fields":[
+					"newRecHomeName",
+					"newRecAcqName",
+					"newRecHomeItem",
+					"newRecAmntStatic",
+					"newRecAmntTransit",
+					"newRecHomeNumber",
+					"newRecHomeStreet",
+					"newRecHomeNeighborhood",
+					"newRecHomeCity",
+					"newRecHomeProvince",
+					"newRecHomePostCode"
+				]
+			},
+			"Auto": {
+				"divId":"newCarRecipient",
+				"fields": [
+					"newRecPlate"
+				]
+			},
+			"Persona": {
+				"divId":"newPersonRecipient",
+				"fields": [
+					"newRecAccCUIT",
+					"newRecAccFName",
+					"newRecAccLName",
+					"newRecAccPhone",
+					"newRecAccBirthdate"
+				]
+			}
+		};
+		
+		$j(document).ready(function() {
+			refreshEveryAllActive();
+		});
+		
+		function ShowCreateRecipient() {
+			var container = $j("#CreateRecipientModal");
+			var section = container.children(".slds-modal");
+			section.removeClass("slds-fade-in-closed");
+			section.addClass("slds-fade-in-open");
+
+			var backdrop = container.children(".slds-backdrop");
+			backdrop.removeClass("slds-backdrop_closed");
+			backdrop.addClass("slds-backdrop_open");
+
+			changedRecipientType();
+		}
+		
+		function HideCreateRecipient() {
+			$j(":not(select)[subId^=newRec]").val(null);
+			$j("[id^=error-newRec]").hide();
+
+			var container = $j("#CreateRecipientModal");
+			var section = container.children(".slds-modal");
+			section.removeClass("slds-fade-in-open");
+			section.addClass("slds-fade-in-closed");
+
+			var backdrop = container.children(".slds-backdrop");
+			backdrop.removeClass("slds-backdrop_open");
+			backdrop.addClass("slds-backdrop_closed");
+		}
+
+		function SendCreateRecipient() {
+			var fields = newRecipientDataByType[currentNewRecipientType].fields;
+			var fieldsValid = true;
+			for (var i = 0; i < fields.length; i++) {
+				fieldsValid = checkField(fields[i]) && fieldsValid;
+			}
+
+			if(fieldsValid) {
+				createRecipient();
+			}
+		}
+
+		function PrepareToRemoveRecipient(recipientId) {
+			$j("[subId=recipientToRemove]").val(recipientId);
+			removeRecipient();
+		}
+		
+		function prepareSave() {
+			$j("[subId=saveButton]").attr("disabled", true);
+			save();
+		}
+		
+		function afterSave() {
+			if(HasEmptyRecipients() || HasInvalidDiscounts()) {
+				ShowToast();
+			}
+			else {
+				HideToast();
+			}
+			$j("[subId=saveButton]").removeAttr("disabled");
+		}
+		
+		function ShowToast() {
+			$j("#errorMsg").text(errorMsg);
+			$j("#toasty").show(400);
+		}
+
+		function HideToast() {
+			$j("#toasty").hide(200);
+		}
+
+		function changedRecipientType() {
+			var oldVal = currentNewRecipientType;
+			var selVal = $j("[subId=newRecType] [value=" + $j("[subId=newRecType]").val() + "]");
+			var newVal = selVal.html();
+
+			if(newVal != oldVal) {
+				$j("#" + newRecipientDataByType[newVal].divId).show(200);
+				if(oldVal) {
+					$j("#" + newRecipientDataByType[oldVal].divId).hide();
+					var oldFields = newRecipientDataByType[oldVal].fields;
+					for (var i = 0; i < oldFields.length; i++) {
+						$j("[subId=" + oldFields[i] + "]").val(null);
+						$j("#error-" + oldFields[i]).hide();
+					}
+				}
+			}
+			currentNewRecipientType = newVal;
+		}
+
+		function checkField(field) {
+			var result;
+			if($j("[subId=" + field + "]").val()) {
+				$j("#error-" + field).hide();
+				result = true;
+			}
+			else {
+				$j("#error-" + field).show();
+				result = false;
+			}
+			return result;
+		}
+
+		function refreshEveryAllActive() {
+			$j("[id^=chkAll-]").each(function() {
+				refreshAllActive($j(this).attr("covId"));
+			});
+		}
+
+		function refreshAllActive(coverageId) {
+			var allChecked = true;
+			$j(":not([disabled])[subId^=chkCoverage-" + coverageId + "-]").each(function() {
+				if(!$j(this).prop("checked")) {
+					allChecked = false;
+					return false;
+				}
+			});
+
+			$j("#chkAll-" + coverageId).prop("checked", allChecked);
+		}
+
+		function toggleAllActive(coverageId) {
+			var allChecked = $j("#chkAll-" + coverageId).prop("checked");
+
+			$j(":not([disabled])[subId^=chkCoverage-" + coverageId + "-]").each(function() {
+				$j(this).prop("checked", allChecked);
+			})
+		}
+
+		function scrollAllCoverageDivs(source) {
+			var scrollVal = $j(source).scrollLeft();
+			$j(".coverageDiv").each(function() {
+				var thisOne = $j(this);
+				thisOne.scrollLeft(scrollVal);
+			});
+		}
+	</script>
+	
+	<apex:slds />
+	<apex:form >
+		<apex:actionFunction name="createRecipient" action="{!createRecipient}"
+			rerender="RecipientsData" oncomplete="HideCreateRecipient()"/>
+		<apex:actionFunction name="removeRecipient" action="{!removeRecipient}"
+			rerender="RecipientsData" oncomplete="refreshEveryAllActive()"/>
+		
+		<apex:inputHidden value="{!RecipientToRemove}" html-subId="recipientToRemove"/>
+		<!-- ================================================================== -->
+		<div class="mainCardContainer">
+			<div class="slds-scope">
+				<article class="slds-card">
+					<div class="slds-card__header slds-grid">
+						<header class="slds-media slds-media_center slds-has-flexi-truncate">
+							<div class="slds-media__body">
+								<h2>
+									<a href="javascript:void(0);" class="slds-card__header-link slds-truncate">
+										<span class="slds-text-heading_small">Asignar beneficiarios</span>
+									</a>
+								</h2>
+							</div>
+						</header>
+						<div class="slds-no-flex">
+						<!--	<button class="slds-button slds-button_neutral" onclick="ShowCreateRecipient(); return false;">
+								<svg class="slds-button__icon slds-button__icon_left" aria-hidden="true">
+									<use xmlns:xlink="http://www.w3.org/1999/xlink"
+										xlink:href="{!URLFOR($Asset.SLDS, 'assets/icons/utility-sprite/svg/symbols.svg#new')}"
+									/>
+								</svg>Nuevo beneficiario
+							</button> -->
+
+						</div>
+					</div>
+					<!-- ================================================================== -->
+					<div class="slds-card__body">
+						<apex:outputPanel id="RecipientsData">
+							<apex:slds />
+							<ul class="recipientUL">
+								<li class="recipientLI" style="display: {!IF(Recipients.size = 0, 'none', 'list-item')};">
+									<section>
+										<div class="slds-grid">
+											<h3 class="slds-text-heading_small slds-accordion__summary-heading">
+												Todos
+											</h3>
+										</div>
+										<div class="coverageDiv" onscroll="scrollAllCoverageDivs(this); return false;">
+											<table>
+												<tr>
+													<apex:repeat var="Coverage" value="{!Coverages}">
+														<td class="coverageTd">
+															<div class="slds-card__header">
+															<span class="slds-checkbox">
+																<input
+																	id="chkAll-{!Coverage.Id}"
+																	type="checkbox"
+																	covId="{!Coverage.Id}"
+																	onChange="toggleAllActive('{!Coverage.Id}'); return false;"
+																/>
+																<label for="chkAll-{!Coverage.Id}" class="slds-checkbox__label">
+																	<span class="slds-checkbox--faux"></span>
+																	<span class="slds-form-element__label">{!Coverage.Nombre_de_Producto__c}</span>
+																</label>
+															</span>
+															</div>
+														</td>
+													</apex:repeat>
+												</tr>
+											</table>
+										</div>
+									</section>
+								</li>
+								<apex:repeat var="Recipient" value="{!Recipients}" >
+									<li class="recipientLI">
+										<section>
+											<div class="slds-grid">
+												<!--RECIPIENT INFO-->
+												<h3 class="slds-text-heading_small slds-accordion__summary-heading">
+													{!Recipient.Nombre__c + ' ' + Recipient.Apellido__c}
+												</h3>
+												<!--/RECIPIENT INFO-->
+												<!--REMOVE BUTTON-->
+												<div class="slds-no-flex removeButtonDiv">
+													<apex:outputPanel rendered="{!Recipient.Caso__c == additionCaseId}">
+													<button onclick="PrepareToRemoveRecipient('{!Recipient.Id}'); return false;" class="slds-button slds-button_neutral">
+														Remover beneficiario
+													</button>
+													</apex:outputPanel>
+												</div>
+												<!--/REMOVE BUTTON-->
+											</div>
+											
+											<!--COVERAGES WITH DISCOUNT-->
+											<div class="coverageDiv" onscroll="scrollAllCoverageDivs(this); return false;">
+												<table>
+												<tr>
+												<apex:repeat var="Coverage" value="{!Coverages}">
+													<apex:variable var="wrapper" value="{!RelationsByCoverageByRecipient[Recipient.Id][Coverage.Id]}" />
+													<td class="coverageTd">
+														<div class="slds-card__header">
+															<apex:outputPanel rendered="{!NOT(wrapper.isAddress)}">
+																<span class="slds-checkbox">
+																	<apex:inputCheckbox value="{!wrapper.IsActive}"
+																		html-subId="chkCoverage-{!Coverage.Id}-{!Recipient.Id}"
+																		onchange="refreshAllActive('{!Coverage.Id}'); return false;"
+																		id="coverageCheckBox"
+																		disabled="{!wrapper.Relation.Caso__c != additionCaseId}"
+																	/>
+																	<apex:outputLabel for="coverageCheckBox" styleClass="slds-checkbox__label">
+																		<span class="slds-checkbox--faux"></span>
+																		<span class="slds-form-element__label">{!Coverage.Nombre_de_Producto__c}</span>
+																	</apex:outputLabel>
+																</span>
+															</apex:outputPanel>
+															<apex:outputPanel rendered="{!wrapper.isAddress}">
+																<span class="slds-form-element__label">{!Coverage.Nombre_de_Producto__c}</span>
+																<br/>
+																<apex:inputField styleClass="directionInput"
+																	value="{!wrapper.AmountDetail.Cantidad__c}"
+																/>
+																<span class="slds-form-element__label">Cantidad</span>
+																<br/>
+																<apex:inputField styleClass="directionInput"
+																	value="{!wrapper.AmountDetail.Cantidad_en_transito__c}"
+																/>
+																<span class="slds-form-element__label">En transito</span>
+															</apex:outputPanel>
+														</div>
+														<!--DISCOUNTS-->
+														<apex:outputPanel layout="block"
+															rendered="{!!wrapper.Discounts.empty}"
+														>
+															<apex:outputPanel rendered="{!NOT(wrapper.IsAnAdult)}">
+																<table class="discountsTable">
+																	<thead>
+																		<tr class="slds-text-title_caps">
+																			<td title="Aplica a descuentos">Aplica a descuentos</td>
+																		</tr>
+																	</thead>
+																	<tbody>
+																		<apex:repeat var="discount"
+																			value="{!wrapper.Discounts}">
+																			<tr>
+																				<td>
+																					<span class="slds-checkbox">
+																						<apex:inputCheckbox value="{!discount.IsActive}"
+																							id="discountCheckbox"
+																							disabled="{!discount.Relation.Caso__c != additionCaseId}"
+																						/>
+																						<apex:outputLabel for="discountCheckbox" styleClass="slds-checkbox__label">
+																							<span class="slds-checkbox--faux"></span>
+																							<span class="slds-form-element__label" title="{!discount.DiscountName}">
+																								{!discount.DiscountName}
+																							</span>
+																						</apex:outputLabel>
+																					</span>
+																				</td>
+																			</tr>
+																		</apex:repeat>
+																	</tbody>
+																</table>
+															</apex:outputPanel>
+														</apex:outputPanel>
+														<!--/DISCOUNTS-->
+													</td>
+												</apex:repeat>
+												</tr>
+												</table>
+											</div>
+											<!--/COVERAGES WITH DISCOUNT-->
+
+										</section>
+									</li>
+								</apex:repeat>
+							</ul>
+						</apex:outputPanel>
+					</div>
+					<!-- ================================================================== -->
+					<footer class="slds-card__footer">
+						<a class="slds-button slds-button_neutral" href="/{!ReturnRecord}">
+							Volver
+						</a>
+						<apex:commandButton onclick="prepareSave()"
+							value="Guardar y volver"
+							styleClass="slds-button slds-button_brand"
+							html-subId="saveButton"
+						/>
+						<apex:actionFunction action="{!save}"
+							name="save"
+							rerender="emptyRecipientsScript"
+							oncomplete="afterSave(); return false;"
+						/>
+					</footer>
+				</article>
+			</div>
+		</div>
+		<!-- ================================================================== -->
+		<div id="toasty">
+			<div class="slds-notify_container">
+				<div class="slds-notify slds-notify_toast slds-theme_error" role="alert">
+					<span class="slds-assistive-text">error</span>
+					<span class="slds-icon_container slds-icon-utility-error slds-m-right_small slds-no-flex slds-align-top" title="Description of icon when needed">
+						<svg class="slds-button__icon slds-button__icon_left" aria-hidden="true">
+							<use xmlns:xlink="http://www.w3.org/1999/xlink"
+								xlink:href="{!URLFOR($Asset.SLDS, 'assets/icons/utility-sprite/svg/symbols.svg#error')}"
+							/>
+						</svg>
+					</span>
+					<div class="slds-notify__content">
+						<h2 class="slds-text-heading_small ">
+							<span id="errorMsg"/>
+						</h2>
+					</div>
+					<button
+						class="slds-button slds-button_icon slds-notify__close slds-button_icon-inverse"
+						title="Close"
+						onclick="HideToast(); return false;"
+					>
+						<svg class="slds-button__icon slds-button__icon_left" aria-hidden="true">
+							<use xmlns:xlink="http://www.w3.org/1999/xlink"
+								xlink:href="{!URLFOR($Asset.SLDS, 'assets/icons/utility-sprite/svg/symbols.svg#close')}"
+							/>
+						</svg>
+						<span class="slds-assistive-text">Cerrar</span>
+					</button>
+				</div>
+			</div>
+		</div>
+	</apex:form>
+	<apex:outputPanel id="emptyRecipientsScript">
+		<script>
+			function HasEmptyRecipients(){
+				return {!EmptyRecipients};
+			}
+
+			function HasInvalidDiscounts() {
+				return {!InvalidDiscounts};
+			}
+			
+			var errorMsg = '{!IF(EmptyRecipients, $Label.Error_beneficiarios_sin_producto, IF(InvalidDiscounts, $Label.Error_beneficiarios_descuento_invalido, '' ))}';
+		</script>
+	</apex:outputPanel>
+</apex:page>

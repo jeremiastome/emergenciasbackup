@@ -1,0 +1,8 @@
+<apex:page lightningStylesheets="true" controller="SenderContactController">
+
+		<apex:form >
+			<apex:commandButton action="{!send}" value="Enviar Alta"/>
+			<apex:commandButton action="{!sendM}" value="Enviar Modificacion"/>
+		</apex:form>
+    
+</apex:page>

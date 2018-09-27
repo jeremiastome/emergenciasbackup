@@ -1,0 +1,59 @@
+<aura:component implements="force:lightningQuickActionWithoutHeader,force:hasRecordId" controller="UploadBeneficiariosController">
+
+    <aura:handler name="buttonClicked" event="c:ClickButtonEvent"
+                  action="{!c.click}"/>
+    <aura:handler name="fileUploaded" event="c:UploadFileEvent" action="{!c.onFileUploaded}"/>
+    <aura:handler name="init" action="{!c.doInit}" value="{!this}"/>
+
+    <aura:attribute name="products" type="sObject[]"/>
+    <aura:attribute name="columns" type="List"/>
+    <aura:attribute name="recordId" type="String" />
+
+    <aura:attribute name="PaginationList" type="sObject[]"/>
+    <aura:attribute name="startPage" type="Integer" />
+    <aura:attribute name="endPage" type="Integer"/>
+    <aura:attribute name="totalRecords" type="Integer"/>
+    <aura:attribute name="pageSize" type="Integer" default="10"/>
+
+    <div aura:id="divMessage"></div>
+    <lightning:spinner aura:id="mySpinner" class="slds-hide"/>
+
+    <lightning:card title="Cargar beneficiarios" iconName="action:upload">
+        <div class="slds-m-top_medium" >
+            <table class="slds-table slds-table--bordered slds-max-medium-table--stacked-horizontal">
+                <thead>
+                    <tr class="">
+                        <th class="" scope="col">
+                            <ui:inputCheckbox label="" class="check" aura:id="master" change="{!c.checkAll}"/>
+                        </th>
+                        <th class="" scope="col">Nombre del producto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <aura:iteration items="{!v.PaginationList}" var="product">
+                        <c:ItemProduct aura:id="item" product="{!product}"/>
+                    </aura:iteration>
+                </tbody>
+            </table>
+            <br/>
+            <lightning:buttonGroup >
+                <lightning:button label="Anterior" disabled="{!v.startPage == 0}"
+                                  onclick="{!c.previous}" variant="brand"
+                                  iconName='utility:back'/>
+                &nbsp; &nbsp; &nbsp;
+                <lightning:button label="Siguiente" disabled="{!v.endPage >= v.totalRecords}"
+                                  onclick="{!c.next}" variant="brand"
+                                  iconName='utility:forward' iconPosition='right'/>
+            </lightning:buttonGroup>
+        </div>
+        <br/>
+        <c:SelectRecordType aura:id="selectRecordType"/>
+        <br/>
+        <c:UploadFile aura:id="uploadFile"/>
+
+        <div align="right">
+            <c:Button buttonLabel="Cancelar" buttonVariant="neutral"/>
+            <c:Button buttonLabel="Aceptar" buttonVariant="brand"/>
+        </div>
+    </lightning:card>
+</aura:component>

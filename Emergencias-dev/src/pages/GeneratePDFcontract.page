@@ -1,0 +1,451 @@
+<apex:page controller="GeneratePDFcontractController" showHeader="false" sidebar="false" renderAs="PDF">
+<html>   
+<head>
+        <style>
+            @page {
+                @top-center {
+                    content: "Sample Header Test";
+                    background-image: url('{!$Resource.LogoEmergencias}');
+                }
+
+                @bottom-center {
+                    content: "Page " counter(page) " of " counter(pages);
+                }
+            }
+
+        </style>
+        </head>
+
+    <body>
+         <!-- HEADER and FOOTER Information -->
+        <DIV CLASS="header">
+            <TABLE BORDER="0" STYLE="width: 100%">
+                <TBODY>
+                    <TR>
+                        <TD CLASS="col-plain-left"><apex:image value="{!$Resource.LogoEmergencias}"/></TD>
+                    </TR>
+                    </TBODY>
+            </TABLE>
+        </DIV>
+
+        <div id="Page1">
+            <!-- PAGE 1-->
+            <div style="text-align: right; padding-right: 35px;">
+                Buenos Aires, {!day} de {!monthString} de {!year}
+            </div>
+
+            <div style="padding-left: 35px;">
+                <b>Señores</b>
+            </div>
+            <div style="padding-left: 35px;">{!clietOfContract.name}</div>
+            <br/>
+            <div style="text-align: left; padding-left: 35px;">_______________________</div>
+            <div style="text-align: right; padding-right: 35px;">
+                <u>Contrato Nº:</u> {!contrato.Numero_Unico_de_Contrato__c}
+            </div>
+
+            
+            <br/>
+            
+            <div style="text-align: justify; padding: 35px;">
+                Martín Gallino, Documento Nacional de Identidad Numero 22.991.577, en mi
+                carácter de Apoderado de INTERNATIONAL HEALTH SERVICES ARGENTINA SA,
+                en adelante LA PRESTADORA, con domicilio en la calle Av. Melián 2752, de la Ciudad
+                de Buenos Aires, nos dirigimos a {!clietOfContract.name} , en adelante 
+                <b>LA ENTIDAD</b>
+                , ( la que conjuntamente con la 
+                <b>Prestadora es denominada la parte / las partes en forma
+                indistinta</b>), a efectos de someter a su consideración la propuesta de servicios de
+                URGENCIAS y EMERGENCIAS MEDICAS, la que de ser aceptada se regirá por las
+                especificaciones, características y condiciones del Anexo A de la presente, (la
+                <b><u>“OFERTA/ PROPUESTA”</u></b>, así denominada en forma indistinta). 
+                La misma se considerara aceptada, de no mediar rechazo formal y por escrito dentro de la 72 horas 
+                de recibida la presente.
+                <br/>
+            </div>
+            <div style="text-align: left; padding-left: 35px">Sin otro particular, lo saluda Atte.</div>
+            
+        </div>
+        
+        
+        <div style="page-break-after: always;"><span style="display: none;">&nbsp;</span></div>
+        
+        
+        <!-- PAGE 2-->
+        <div id="Page2">
+            
+            <div class="header">
+                <apex:image value="{!$Resource.LogoEmergencias}"/>
+            </div>
+
+            <div style="text-align: center; font-size:x-large;"> <b><u>ANEXO A</u></b></div>
+            
+            <br/>
+
+            <div style="text-align: justify; padding-left: 35px; padding-right: 35px">
+                    <b>Primera:</b> La presente oferta de servicios tendrá vigencia a partir del momento de su
+                    aceptación, conforme en los términos de la nota de presentación de esta oferta y se
+                    mantendrá hasta tanto cualquiera de las partes manifieste su intención en contrario,
+                    conforme lo consignado seguidamente.
+            </div>
+            <br/>
+            <div style="text-align: justify; padding-left: 35px; padding-right: 35px">
+                    <b>Segunda:</b> Las partes podrán rescindir este convenio sin expresión de causa, notifi
+                    cando la decisión a la otra parte, por medio escrito y con no menos de treinta (30) días
+                    corridos de anticipación, debiendo esta ser comunicada dentro del mes anterior al del
+                    cese efectivo del servicio. Durante el plazo de preaviso antes mencionado, la Presta
+                    dora continuará facturando la prestación de los servicios en atención a que continúa
+                    vigente la presente Oferta en todos sus términos.
+            </div>
+            <br/>
+            <div style="text-align: justify; padding-left: 35px; padding-right: 35px">
+                    <b>Tercera:</b> La asistencia de La Prestadora cesará automáticamente cuando el paciente
+                    haya superado el período de crisis de salud que dio origen al servicio y/o cuando el
+                    mismo arribe al lugar donde se determinó su internación.
+            </div>
+            <br/>
+            <div style="text-align: justify; padding-left: 35px; padding-right: 35px">
+                    <b>Cuarta:</b> Servicios: La PRESTADORA, brindara los servicios a continuación descriptos.
+            </div>
+            
+            <br/>
+            <br/>
+
+            <div style="text-align: justify; padding-left: 35px; padding-right: 35px">
+                <form >
+
+                    <apex:outputPanel rendered="{!haveHogarProtegido}">
+                        <div style="text-align: left"><b>Hogar Protegido:</b></div>
+                        <br/>
+                        <b>La PRESTADORA</b>, brindara el servicio de HOGAR PROTEGIDO <b>exclusivamente
+                        en vuestro domicilio sito en la calle 
+                        {!listOfBeneficiariosToPageHogarProtegido[0].Calle__c} {!listOfBeneficiariosToPageHogarProtegido[0].Altura__c}, 
+                        las 24 hs los 365 días del año</b> protegiendo ante situaciones de emergencias y/o urgencias
+                        médicas (casos en los que exista riesgo inminente para la vida, y/o situaciones que
+                        puedan comprometerla) a todas las personas que se encuentren en el lugar ya sea
+                        desempeñando actividades laborales (empleados) o en tránsito dentro del mismo (invitados, 
+                        visitas, clientes, proveedores, etc); efectuándose además el posterior traslado
+                        si este fuera necesario, al sanatorio, clínica u hospital que corresponda.
+                        <br/>
+                        <div style="text-align: left;">
+                            <br/>
+                            <apex:variable var="idx" value="{!0}" />
+                            <apex:repeat value="{!listOfBeneficiariosToPageHogarProtegido}" var="beneficiario">
+                                <apex:variable var="idx" value="{!idx + 1}" />
+                                    Domicilio {!idx}: {!beneficiario.Provincia1__c}, {!beneficiario.Ciudad__c}, {!beneficiario.Calle__c} {!beneficiario.Altura__c}
+                                <br/>
+                            </apex:repeat>
+                        </div>    
+                        <br/>
+                        <br/> 
+                    </apex:outputPanel>
+                    
+                    
+                    <apex:outputPanel rendered="{!haveAreaProtegida}">
+                        <div style="text-align: left"><b>Área Protegida:</b></div>
+                        <br/>
+                            Servicio brindado <b>exclusivamente en los domicilios abajo detallados las 24 hs los
+                            365 días del año</b> protegiendo ante situaciones de emergencias y/o urgencias médicas
+                            (casos en los que exista riesgo inminente para la vida, y/o situaciones que puedan
+                            comprometerla) a todas las personas que se encuentren en el lugar ya sea desempeñando 
+                            actividades laborales (empleados) o en tránsito dentro del mismo (invitados,
+                            visitas, clientes, proveedores, etc); efectuándose además el posterior traslado, si este
+                            fuera necesario, al sanatorio, clínica u hospital que corresponda.
+                        <br/>
+                        <div style="text-align: left;">
+                            <br/>
+                            <apex:variable var="idx" value="{!0}" />
+                            <apex:repeat value="{!ListBeneficiariosOfContract}" var="beneficiario">
+                                <apex:variable var="idx" value="{!idx + 1}" />
+                                    Domicilio {!idx}: {!beneficiario.Provincia1__c}, {!beneficiario.Partido__c}, {!beneficiario.Calle__c} {!beneficiario.Altura__c}
+                                <br/>
+                            </apex:repeat>
+                        </div> 
+                        <br/>
+                        <br/>                            
+                    </apex:outputPanel>
+
+
+                    <apex:outputPanel rendered="{!haveEmerphone}">
+                        <div style="text-align: left"><b>Emerphone:</b></div>
+                        <br/>
+                            <div>
+                            Es un completo sistema de alarma (botón de pánico) para proteger personas, hogares
+                            y comercios. Ante situaciones de emergencia, permite recibir asistencia policial, médi
+                            ca o de bomberos con sólo apretar un botón
+                            </div>
+                        <br/>
+                        <br/>
+                        <br/> 
+                    </apex:outputPanel>
+
+
+                    <apex:outputPanel rendered="{!haveAutoProtegido}">
+                        <div style="text-align: left"><b>Auto Protegido:</b></div>
+                        <br/>
+                            Cobertura ante situaciones de “emergencias médicas” a todas las personas que se
+                            encuentren en el interior de los automóviles de los titulares asociados, con PATENTES
+                            según el siguiente listado sean o no socios directos de Emergencias S.A., dentro del
+                            radio de Capital Federal y Gran Buenos Aires, durante las 24 horas, los 365 días del
+                            año.
+                        <br/>
+                        <div style="text-align: left;">
+                            <br/>
+                            <apex:variable var="idx" value="{!0}" />
+                            <apex:repeat value="{!listOfBeneficiariosCar}" var="beneficiario">
+                                <apex:variable var="idx" value="{!idx + 1}" />
+                                    Patente {!idx}: {!beneficiario.Patente_del_auto__c}
+                                <br/>
+                            </apex:repeat>
+                        </div>    
+                        <br/>
+                        <br/> 
+                    </apex:outputPanel>
+
+                    <!--Flata-->
+                    <apex:outputPanel rendered="{!haveMedicinaEmpresarial}">
+                        <div style="text-align: left"><b>MEDICINA EMPRESARIAL:</b></div>
+                        <br/>
+                            La Prestadora - Emergencias brindará el servicio de medicina laboral a través de su División Medicina
+                            Empresarial. El mismo comprenderá los siguientes servicios.
+                        <br/>
+                        <div style="text-align: left;">
+                            <br/>
+                            <apex:variable var="idx" value="{!0}" />
+                            <apex:repeat value="{!listOfServicios}" var="servicio">
+                                <apex:variable var="idx" value="{!idx + 1}" />
+                                    Servicio {!idx}: {!servicio.name}
+                                <br/>
+                            </apex:repeat>
+                        </div>
+                        <br/>
+                        Todos estos servicios se brindan por Prestación y con Aranceles Preferenciales.    
+                        <br/>
+                        <br/> 
+                    </apex:outputPanel>
+
+
+                    <apex:outputPanel rendered="{!haveVisitorCard}">
+                        <div>
+                        <div style="text-align: left"><b>Visitor Card:</b></div><br/>
+                            A través de una credencial especial no personalizada se brinda cobertura de emergencias y
+                            urgencias médicas, visita médica domiciliaria, y asistencia odontológica de urgencia, durante
+                            las 24 Hs., en Capital Federal y Gran Buenos Aires, a los visitantes que reciba vuestra entidad
+                            (turistas, pasajeros, funcionarios de empresas, etc).
+                        </div>
+                        <br/>
+                        <br/>
+                    </apex:outputPanel>
+
+
+                    <apex:outputPanel rendered="{!haveServicioEca}">
+                        <div>
+                        <div style="text-align: left"><b>Servicio ECA:</b></div>
+                        <br/>
+                        La PRESTADORA brindará el servicio de ESPACIO CARDIO ASISTIDO en el Local,
+                        conforme a las siguientes prestaciones:
+                        <div>
+                        - Provisión del equipamiento necesario para la prestación del servicio.
+                        </div>
+                        <div>
+                        - Instalación física del DEA con su GABINETE y el equipamiento de Alerta temprana
+                        (monitoreo de apertura)
+                        </div>
+                        <div>
+                        - Monitoreo 24 hs de la apertura de Gabinete, e inicio del protocolo de Cadena de So
+                        brevida.
+                        </div>
+                        <div>
+                        - Visualización técnica cada seis meses de la unidad instalada y sus componentes
+                        asociados
+                        </div>
+                        <div>
+                        - Revisión Técnica obligatoria del DEA, sustitución de baterías, revisión de electrodos y
+                        calibración cada 24 meses.
+                        </div>
+                        <div>
+                        - Provisión e instalación de un DEA sustituto, de ser requerido, durante el proceso de
+                        revisión Técnica y Calibración.
+                        </div>
+                        <div>
+                        - Capacitación de las personas designadas como PRIMER RESPONDIENTE en RCP
+                        y DEA. Esta Capacitación será ejecutada una vez por año, hasta un máximo de 20
+                        personas definidas por LA ENTIDAD. El lugar para llevar a cabo la capacitación será
+                        definido por LA PRESTADORA al momento de coordinar el mismo.
+                        </div>
+                        <div>
+                        - Entrenamiento Social, orientado a la difusión y creación de conciencia en las áreas
+                        de RCP. Este Entrenamiento será ejecutado una vez por año, hasta un máximo de 30
+                        personas definidas por LA ENTIDAD. El lugar y la fecha para llevar a cabo la capacita
+                        ción serán definidos por LA PRESTADORA al momento de coordinar el mismo.
+                        </div>
+                        <div>
+                        - La PRESTADORA entregará a LA ENTIDAD en Comodato los equipos y elementos
+                        de su propiedad, LA ENTIDAD estará obligado a devolverlos en perfectas condiciones
+                        de uso y conservación o su valor equivalente al momento de efectuarse la devolución
+                        debido al vencimiento y/o la rescisión de esta Oferta, sea cual fuere la causa y /o el
+                        motivo. LA ENTIDAD será responsable del salvaguardo de los equipos frente a cual
+                        quier hecho fortuito o de causa mayor, debiendo constituir a favor de LA
+                        PRESTADORA los seguros que correspondan.
+                        </div>
+                        <div>
+                        Asimismo LA ENTIDAD deberá notificar a la PRESTADORA en forma inmediata toda
+                        irregularidad, siniestro, hecho vandálico, etc. que pudiera producirse en los mismos.
+                        <br/>
+                        LA ENTIDAD deberá permitir a quien designe LA PRESTADORA el ingreso y acceso
+                        al Local donde los equipos se encuentren instalados para la prestación de los servicios
+                        enunciados y/o la visualización de los mismos.
+                        Los equipos entregados en COMODATO son:
+                            <div style="text-align: left; padding-left: 40px;">
+                            • GABINETE Integrado con Alerta Cardiológica
+                            </div>
+                            <div style="text-align: left; padding-left: 40px;">
+                            • DEA (Desfibrilador Externo Automático)
+                            </div>
+                            <div style="text-align: left; padding-left: 40px;">
+                            • Señalética
+                            </div>
+                        La aceptación de la presente Oferta es señal de conformidad al comodato, sirviendo la
+                        misma de suficiente recibo y carta de pago.
+                        <div>
+                        <br/>
+                        La presente Oferta tendrá vigencia a partir del momento de su aceptación, y se mantendrá 
+                        por un período de treinta y seis (36) meses, o hasta tanto cualquiera de las Partes 
+                        manifieste su intención en contrario, conforme lo consignado seguidamente.
+                        </div>
+
+                        </div>
+    
+                        </div>
+                        <br/>
+                        <br/>
+                    </apex:outputPanel>
+
+                </form>
+
+            </div>
+            
+           
+        </div>        
+        
+
+        <div style="page-break-after: always;"><span style="display: none;">&nbsp;</span></div>
+        
+
+        <!-- PAGE 3-->
+        <div id="Page3">
+
+            <header>
+                <apex:image value="{!$Resource.LogoEmergencias}"/>
+            </header>
+
+            <div style="text-align: center; font-size:x-large;"> <b><u>ANEXO I</u></b></div>
+            
+            <br/>
+
+            <div style="text-align: justify; padding-left: 35px; padding-right: 35px">
+                Por los servicios de esta propuesta, {!clietOfContract.name} deberá abonar mensual
+                mente a International Health Services Argentina S.A. del 1 al 10 de cada mes por adelantado, lo siguiente:
+                
+                <br/>
+
+                <apex:form >
+                    <div style="text-align: left;">
+                        <br/>
+                        <apex:variable var="idx" value="{!0}" />
+                        <apex:repeat value="{!ListProductOfContract}" var="prod">
+                             <apex:variable var="idx" value="{!idx + 1}" />
+                                Producto {!prod.name}: ……… ${!prod.Precio_total__c} ... .-+ IVA (Pesos .).- IVA
+                                <br/>
+                        </apex:repeat>
+                    </div>   
+                </apex:form>
+            
+                <div>
+                Las partes se comprometen y obligan a revisar conjuntamente este importe para el
+                supuesto en que se alteren las pautas económicas o prestacionales actualmente en
+                vigencia.
+                </div>
+
+                <br/>
+                
+                <div>
+                Las partes se comprometen a revisar conjuntamente el importe que da cuenta la presente 
+                oferta para el supuesto en que se alteren las pautas económicas y prestaciona
+                les existentes al momento de aceptarse la presente, y / o que la prestación del servicio
+                y/o la abono acordado, resulte inconsistente y/o insuficiente y/o se produzcan situacio
+                nes que alteren la ecuación económica y/o prestacional, tenida en consideración al
+                momento de consensuar los valores que da cuenta la cláusula de la presente oferta.
+                A tal fin IHSA notificara a {!clietOfContract.name}, los nuevos valores y el momento a
+                partir del cual comenzaran a regir. Si dentro del plazo de treinta días corridos, desde
+                que reciba la comunicación, esta no objetara de modo fehaciente los mismos, se
+                consideraran aceptados. Asimismo y para el caso que durante el plazo antes mencionado, 
+                las partes hubieren mantenido reuniones y no hubieren podido consensuar el
+                nuevo valor, dará derecho a IHSA a considerar resuelta la presente oferta con la sola
+                obligación de notificarlo con 30 días de anticipación y sin derecho a reclamar indemni
+                zación de ningún tipo.-
+                </div>
+
+                <br/>
+
+                <div>                
+                La mora se producirá en forma automática y por el solo vencimiento, sin necesidad de
+                interpelación judicial o extrajudicial de ninguna naturaleza, devengando un interés
+                equivalente a la tasa mensual activa que cobra el Banco de la Nación Argentina para
+                las operaciones de descuento a 30 días.-
+                </div>
+
+                <br/>
+
+                <div>
+                Como consecuencia de ello, y ante la falta de pago de la Empresa, de los importes
+                convenidos precedentemente o que se convengan en el futuro, la Prestadora podrá
+                resolver la presente Oferta por culpa de La Empresa, previa intimación para que
+                dentro del plazo de 48 horas regularice la situación. De no darse cumplimiento con la
+                intimación, la Prestadora, dejara sin efecto la oferta por culpa de La Empresa, con la
+                consabida responsabilidad de la misma por los daños y perjuicios ocasionados, liberando 
+                a la Prestadora de toda responsabilidad por las eventuales consecuencias que
+                esta suspensión pudiera causar.
+                </div>
+
+                <br/>
+
+                <div>
+                    Las Partes se obligan a mantener estricta confidencialidad sobre toda la documentación 
+                    e información a la que puedan tener acceso como consecuencia de esta Oferta.
+                    Las Partes podrán rescindir esta Oferta sin expresión de causa, notificando la decisión
+                    a la otra, por medio escrito y con no menos de sesenta (60) días corridos de anticipación 
+                    al mes anterior al del cese efectivo del servicio. Durante el plazo de preaviso antes 
+                    mencionado, LA PRESTADORA continuará facturando la prestación de los servicios 
+                    en atención a que continúa vigente la presente Oferta en todos sus términos.
+                    También podrá rescindirse en caso de incumplimiento de las Partes, pudiendo la otra
+                    exigir los daños y perjuicios generados por el mismo.
+                </div>
+
+                <br/>
+
+                <div>
+                    Quedando desde ya a vuestra disposición ante cualquier duda de carácter asistencial
+                    o comercial, los saludamos atentamente.
+                </div>
+                
+                <br/>
+
+                <div id="Firma" style="text-align: right;">
+                    <div>
+						<apex:image value="{!$Resource.firmapdf}" style="text-align: right; width: 200px; height: 200px;"/>
+                    	<!--<br/>
+                        MART&Iacute;N GALLINO
+                        <br/>
+						APODERADO-->
+                    </div>
+
+                </div>
+                
+            </div>
+
+        </div>
+
+    </body>
+</html>      
+</apex:page>

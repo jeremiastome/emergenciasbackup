@@ -1,0 +1,26 @@
+<aura:component controller="Vista360Controller" implements="force:hasRecordId,flexipage:availableForRecordHome" access="global">
+
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="tickets" type="Object" />
+
+    <aura:attribute name="iconoTickets" type="String" default="custom:custom16" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <lightning:card iconName="standard:recent" title="Tickets historicos" class="slds-is-relative">
+
+        <aura:set attribute="actions">
+            <lightning:buttonIcon iconName="utility:refresh" class="slds-col--bump-left" variant="bare"
+                                  alternativeText="Refrescar" onclick="{!c.doInit}" />
+        </aura:set>
+
+        <div class="slds-p-left_xx-small slds-p-right_xx-small">
+
+            <c:Vista360_ListaTicketsHistoricos icono="{!v.iconoTickets}" titulo="Tickets" tickets="{!v.tickets.TicketsServiceList}" />
+
+        </div>
+
+        <lightning:spinner aura:id="spinner" variant="brand" class="spin" size="large"/>
+
+    </lightning:card>
+</aura:component>

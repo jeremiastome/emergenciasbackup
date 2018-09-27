@@ -1,0 +1,57 @@
+<aura:component controller="Caso_CrearCasoHijoController" implements="flexipage:availableForRecordHome,force:hasRecordId">
+	<ltng:require scripts="{!$Resource.XappiaUtils}" afterScriptsLoaded="{!c.init}"/>
+	<aura:attribute name="RecordTypes" type="Object[]" />
+	<aura:attribute name="caseFields" type="Object" />
+	<aura:attribute name="caseList" type="List" default="{v}" />
+    <aura:attribute name="isOpen" type="boolean" default="false" />
+    
+	<force:recordData aura:id="recordData"
+		recordId="{!v.recordId}"
+		fields="Id,Origin,Contrato__c,AccountId"
+		targetFields="{!v.caseFields}"
+	/>
+
+	<lightning:button class="slds-button_neutral" onclick="{!c.toggle}" label="Crear caso relacionado" />
+    
+    <aura:if isTrue="{!v.isOpen}">
+	<div role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open cont" id="container">
+        <div class="slds-modal__container">
+            <div class="slds-modal__header">
+                <lightning:buttonIcon class="slds-modal__close" iconName="utility:close" size="large" 
+                                          variant="bare-inverse" alternativeText="Close" onclick="{!c.as}" /> 
+                
+                <h2 id="header43" class="slds-text-heading--medium">Crear Caso Hijo</h2>
+            </div>
+            <div class="slds-modal__content slds-p-around--medium">
+                <div class="slds-align--absolute-center">
+                     <div class="slds-p-top--small slds-p-bottom--small" >
+                        <fieldset class="slds-form-element">
+                            <div class="slds-form-element__control">
+                                <aura:iteration items="{!v.RecordTypes}" var="newCase">
+                                    <label class="slds-radio slds-p-top--small">
+                                        <tr>
+                                            <td>
+                                                <ui:inputRadio name="cases" change="{!c.onChange}" text="{!newCase.Id}" value="true"/>
+                                                <span class="slds-radio--faux"></span>
+                                            </td>
+                                            <td>
+                                                <span class="slds-form-element__label">{!newCase.Name}</span>
+                                            </td>
+                                        </tr>
+                                    </label>
+                                
+                               </aura:iteration>
+                             </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-modal__footer">
+                <lightning:button label="Cancelar" variant="neutral"  onclick="{!c.as}"/>
+                <lightning:button label="Guardar" variant="brand"  onclick="{!c.createRecipient}"/>
+            </div>
+        </div>
+    </div>
+    <div class="slds-backdrop slds-backdrop--open"></div>
+    </aura:if>
+</aura:component>

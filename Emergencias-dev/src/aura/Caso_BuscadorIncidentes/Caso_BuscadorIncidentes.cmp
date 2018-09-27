@@ -1,0 +1,159 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" controller="Caso_BuscadorIncidentesController" >
+	<ltng:require scripts="{!$Resource.XappiaUtils}" afterScriptsLoaded="{!c.init}"/>
+	<aura:attribute name="recordId" type="String" />
+	<aura:attribute name="incidents" type="Object[]" default="[]" />
+	<aura:attribute name="savedIncidents" type="Object[]" default="[]" />
+	<aura:attribute name="savedIncidentNumbers" type="Object" default="{}" />
+
+	<aura:attribute name="entityType" type="String" default="1" />
+	<aura:attribute name="entityNumber" type="String" default="" />
+	<aura:attribute name="dateFrom" type="Date" default=""/>
+	<aura:attribute name="dateTo" type="Date" default=""/>
+
+	<aura:attribute name="showEntityNumError" type="boolean" default="false" />
+	<aura:attribute name="showSavedIncidents" type="boolean" default="false" />
+	<aura:attribute name="showDateError" type="boolean" default="false" />
+	<aura:attribute name="selectAll" type="boolean" default="false" />
+	<aura:attribute name="isLoading" type="boolean" default="true" />
+
+	<!-- 52
+	<br/> -->
+	<div class="slds-grid slds-grid_pull-padded-medium">
+		<div class="slds-col slds-p-horizontal_medium">
+			<lightning:select label="Tipo de entidad:" value="{!v.entityType}">
+				<option value="1">Cliente</option>
+				<option value="2">Titular</option>
+				<option value="3">Beneficiario</option>
+			</lightning:select>
+			<ui:inputDateTime label="Instante desde:" displayDatePicker="true" value="{!v.dateFrom}" aura:id="inputDateFrom" />
+			<aura:if isTrue="{!v.showDateError}" >
+				<div style="color:red;">
+					{!$Label.c.Error_fecha_desde_mayor_que_fecha_hasta}
+				</div>
+			</aura:if>
+		</div>
+		<div class="slds-col slds-p-horizontal_medium">
+			<ui:inputText label="Numero de entidad" value="{!v.entityNumber}" required="true" aura:id="inputEntityNumber" /><!-- force:inputField?? -->
+			<aura:if isTrue="{!v.showEntityNumError}" >
+				<div style="color:red;">
+					{!$Label.c.Error_no_cargo_numero_de_entidad}
+				</div>
+			</aura:if>
+			<ui:inputDateTime label="Instante hasta:" displayDatePicker="true" value="{!v.dateTo}"/>
+		</div>
+	</div>
+	<br/>
+	<div class="slds-grid slds-grid_pull-padded-medium slds-grid_vertical-align-center">
+		<div class="slds-p-horizontal_medium">
+			<lightning:button variant="neutral" label="Buscar incidentes" onclick="{!c.GetIncidents}" />
+		</div>
+		<div class="slds-p-horizontal_medium">
+			<ui:inputCheckbox label="Mostrar incidentes ya asociados " class="inlineBlock" value="{!v.showSavedIncidents}"/>
+		</div>
+	</div>
+	<br/>
+	<br/>
+	<table class="slds-table slds-no-row-hover slds-table_bordered slds-table_striped">
+		<thead>
+			<tr class="slds-text-title_caps">
+				<th scope="col" class="slds-text-align_right" style="width: 3.25rem;">
+					<div class="slds-th__action slds-th__action_form">
+						<ui:inputCheckbox label="" value="{!v.selectAll}" change="{!c.OnSelectAll}"/>
+					</div>
+				</th>
+				<th scope="col" class="">
+					<div class="slds-truncate" title="clasification">Clasificacion</div>
+				</th>
+				<th scope="col" class="">
+					<div class="slds-truncate" title="status">Estado</div>
+				</th>
+				<th scope="col" class="">
+					<div class="slds-truncate" title="instant">Instante</div>
+				</th>
+				<th scope="col" class="">
+					<div class="slds-truncate" title="pacient">Nombre del Paciente</div>
+				</th>
+				<th scope="col" class="">
+					<div class="slds-truncate" title="entityNumber">Numero de Entidad</div>
+				</th>
+				<th scope="col" class="">
+					<div class="slds-truncate" title="serviceNumber">Numero de Servicio</div>
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			<!-- ================================================================== -->
+			<!-- Saved incidents -->
+			<aura:if isTrue="{!v.showSavedIncidents}" >
+				<aura:iteration var="incident" items="{!v.savedIncidents}">
+					<tr>
+						<th scope="row" data-label="Opportunity Name" class="">
+							<ui:inputCheckbox label="" value="{!true}" disabled="true" />
+						</th>
+						<th scope="row" data-label="clasification" class="">
+							{!incident.Clasificacion__c}
+						</th>
+						<td data-label="status" class="">
+							{!incident.Estado__c}
+						</td>
+						<td data-label="instant" class="">
+							<ui:outputDateTime value="{!incident.Instante__c}" format="DD/MM/YYYY HH:mm"/>
+						</td>
+						<td data-label="pacient" class="">
+							{!incident.Nombre_de_Paciente__c}
+						</td>
+						<td data-label="entityNumber" class="">
+							{!incident.Numero_de_Entidad__c}
+						</td>
+						<td data-label="serviceNumber" class="">
+							<ui:outputURL value="{!incident.Detalles__c}" label="{!incident.Numero_de_Servicio__c}" target="_blank"/>
+						</td>
+					</tr>
+				</aura:iteration>
+			</aura:if>
+			<!-- /Saved incidents -->
+			<!-- ================================================================== -->
+			<!-- Server incidents -->
+			<aura:iteration var="incident" items="{!v.incidents}">
+				<tr>
+					<th scope="row" data-label="Opportunity Name" class="">
+						<ui:inputCheckbox label="" value="{!incident.isActive}" change="{!c.OnSelectOne}"/>
+					</th>
+					<th scope="row" data-label="clasification" class="">
+						{!incident.Clasificacion}
+					</th>
+					<td data-label="status" class="">
+						{!incident.Estado}
+					</td>
+					<td data-label="instant" class="">
+						<ui:outputDateTime value="{!incident.Instante}" format="DD/MM/YYYY HH:mm"/>
+					</td>
+					<td data-label="pacient" class="">
+						{!incident.NomPaciente}
+					</td>
+					<td data-label="entityNumber" class="">
+						{!incident.NumEntidad}
+					</td>
+					<td data-label="serviceNumber" class="">
+						<ui:outputURL value="{!incident.DetalleUrl}" label="{!incident.NumServicio}" target="_blank"/>
+					</td>
+				</tr>
+			</aura:iteration>
+			<!-- Server incidents -->
+			<!-- ================================================================== -->
+		</tbody>
+	</table>
+	<br/>
+	<aura:if isTrue="{!and(v.incidents.length == 0, or(v.savedIncidents.length == 0, not(v.showSavedIncidents)))}" >
+		<div>
+			{!$Label.c.No_hay_incidentes_para_mostrar}
+		</div>
+		<br/>
+	</aura:if>
+
+	<aura:if isTrue="{!v.isLoading}" >
+		<lightning:spinner variant="brand" size="large"/>
+	</aura:if>
+
+	<lightning:button variant="brand" label="Guardar" onclick="{!c.Save}" />
+</aura:component>

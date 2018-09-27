@@ -1,0 +1,46 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" controller="Caso_ReactivarBeneficiariosController">
+	<ltng:require scripts="{!$Resource.XappiaUtils}" afterScriptsLoaded="{!c.init}" />
+
+	<aura:attribute name="recordId" type="String" />
+	<aura:attribute name="recipients" type="Object[]" />
+	<!-- <aura:attribute name="activeRecipients" type="Map" /> -->
+	
+	<lightning:card >
+		<aura:set attribute="title">
+			Reactivar beneficiarios
+		</aura:set>
+		<p class="slds-p-horizontal_small">
+			<aura:iteration items="{!v.recipients}" var="recipient">
+				<div style="margin-bottom: 0.5em;"> 
+					<div style="display: inline-block;" class="slds-text-heading_small" data-rec="{!recipient.Id}">
+						<ui:inputCheckbox value="{!recipient.isActive}"
+							label="{!recipient.Nombre__c + ' ' + recipient.Apellido__c}"
+							change="{!c.onRecipientChange}"
+							class="inlineCheck"
+						/>
+					</div>
+					<div class="slds-scrollable_x">
+						<div style="margin-bottom: 0.1em;" class="slds-grid slds-grid_pull-padded-medium">
+							<aura:iteration items="{!recipient.Coberturas__r}" var="coverage">
+								<div
+									class="slds-p-horizontal_medium"
+									style="white-space: nowrap;"
+									data-rec="{!recipient.Id}"
+								>
+									<ui:inputCheckbox value="{!coverage.isActive}"
+										label="{!coverage.Cobertura__r.Producto__r.Numero__c}"
+										change="{!c.onCoverageChange}"
+										class="inlineCheck"
+									/>
+								</div>
+							</aura:iteration>
+						</div>
+					</div>
+				</div>
+			</aura:iteration>
+		</p>
+		<aura:set attribute="footer">
+            <lightning:button variant="brand" label="Guardar" onclick="{!c.save}" />
+        </aura:set>
+	</lightning:card>
+</aura:component>

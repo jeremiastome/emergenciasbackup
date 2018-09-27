@@ -1,0 +1,40 @@
+<aura:component >
+
+  <aura:attribute name="detalle" type="Object" />
+
+  <lightning:card iconName="standard:drafts" class="slds-is-relative">
+
+      <aura:set attribute="title">
+        <div class="slds-grid">
+          <ui:outputText value="{!v.detalle.posicionFactura}" />
+
+        </div>
+      </aura:set>
+
+      <div aura:id="detallesDetalle" class="slds-p-left--medium slds-p-right--medium">
+
+        <ul class="slds-grid slds-wrap">
+          <li class="slds-list__item slds-size--1-of-2">
+            <span class="slds-text-color--weak slds-m-right--small">Fecha:</span> <ui:outputDate value="{!v.detalle.fechaDetalle}"/>
+          </li>
+          <li class="slds-list__item slds-size--1-of-2">
+            <span class="slds-text-color--weak slds-m-right--small">Material introducido:</span><ui:outputText value="{!v.detalle.materialIntroducido}"/>
+          </li>
+          <li class="slds-list__item slds-size--1-of-2">
+            <span class="slds-text-color--weak slds-m-right--small">Periodo Facturado:</span><ui:outputText value="{!v.detalle.periodoFacturacion}"/>
+          </li>
+          <li class="slds-list__item slds-size--1-of-2">
+            <span class="slds-text-color--weak slds-m-right--small">Cantidad:</span><ui:outputText value="{!v.detalle.cantidad}"/>
+          </li>
+          <li class="slds-list__item slds-size--1-of-2">
+            <span class="slds-text-color--weak slds-m-right--small">Importe Total:</span><ui:outputText value="{!v.detalle.importeTotal}"/>
+          </li>
+          <li class="slds-list__item slds-size--1-of-2">
+            <span class="slds-text-color--weak slds-m-right--small">Bonificación:</span><ui:outputText value="{!v.detalle.bonificacion}"/>
+          </li>
+            
+        </ul>
+
+      </div>
+  </lightning:card>
+</aura:component>

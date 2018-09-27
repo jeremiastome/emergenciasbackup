@@ -1,0 +1,23 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" controller="Cuenta_ReenviarFacturaController" >
+	<ltng:require scripts="{!$Resource.XappiaUtils}"/>
+	<aura:attribute name="recordId" type="String" />
+	
+	<aura:attribute name="facNumber" type="String" default="" />
+	<aura:attribute name="altMail" type="String" default="" />
+	
+	<aura:attribute name="isLoading" type="boolean" default="false" />
+	
+	<div class="slds-grid slds-grid_pull-padded-medium">
+		<div class="slds-col slds-p-horizontal_medium">
+			<ui:inputText label="Número de factura:" value="{!v.facNumber}" aura:id="inputFacNum" />
+			<ui:inputEmail label="Email alternativo:" value="{!v.altMail}" aura:id="inputMail" />
+		</div>
+	</div>
+	<br/>
+	
+	<aura:if isTrue="{!v.isLoading}" >
+		<lightning:spinner variant="brand" size="large"/>
+	</aura:if>
+	
+	<lightning:button variant="brand" label="Reenviar factura" onclick="{!c.ResendFactJS}" />
+</aura:component>

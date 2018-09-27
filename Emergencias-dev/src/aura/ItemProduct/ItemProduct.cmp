@@ -1,0 +1,12 @@
+<aura:component >
+    <aura:attribute name="product" type="Cobertura__c"/>
+
+    <tr class="slds-hint-parent">
+        <td class="" data-label="" style="padding-left:3;">
+            <ui:inputCheckbox label="" value="{!v.product.isSelected}" text="{!v.product.id}" aura:id="checkbox"/>
+        </td>
+        <td class="" data-label="Nombre del producto" style="padding-left:3;">
+            <a href="{!'#/sObject/' + v.product.product.Id + '/view'}">{!v.product.product.Nombre_de_Producto__c}</a>
+        </td>
+    </tr>
+</aura:component>

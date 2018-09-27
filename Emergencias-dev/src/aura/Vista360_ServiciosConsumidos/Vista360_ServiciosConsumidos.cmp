@@ -1,0 +1,44 @@
+<aura:component controller="Vista360Controller" implements="force:hasRecordId,flexipage:availableForRecordHome" access="global">
+
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="listasServicios" type="Object" />
+    <aura:attribute name="dateTo" type="Date" />
+    <aura:attribute name="dateFrom" type="Date" />
+    <aura:attribute name="iconoRCD" type="String" default="custom:custom16" />
+    <aura:attribute name="iconoGTE" type="String" default="custom:custom16" />
+    <aura:attribute name="iconoEmerphone" type="String" default="custom:custom16" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <lightning:card iconName="standard:recent" title="Ultimos servicios consumidos" class="slds-is-relative">
+
+        <aura:set attribute="actions">
+            <lightning:buttonIcon iconName="utility:refresh" class="slds-col--bump-left" variant="bare"
+                                  alternativeText="Refrescar" onclick="{!c.obtenerServicios}" />
+        </aura:set>
+
+        <div class="slds-grid slds-gutters slds-form-element">
+            <div class="slds-col">
+                <ui:inputDate aura:id="dateFrom" label="Instante desde" class="field"
+                   value="{!v.dateFrom}" displayDatePicker="true" format="dd/MM/yyyy"/>
+            </div>
+            <div class="slds-col">
+                <ui:inputDate aura:id="dateTo" label="Instante hasta" class="field"
+                   value="{!v.dateTo}" displayDatePicker="true" format="dd/MM/yyyy"/>
+            </div>
+        </div>
+        <div class="slds-p-left_xx-small slds-p-right_xx-small">
+
+            <c:Vista360_ListaServiciosConsumidos icono="{!v.iconoRCD}" titulo="RCD" servicios="{!v.listasServicios.RCDServiceList}" />
+
+            <c:Vista360_ListaServiciosConsumidos icono="{!v.iconoGTE}" titulo="GTE" servicios="{!v.listasServicios.GTEServiceList}" />
+
+            <c:Vista360_ListaServiciosConsumidos icono="{!v.iconoEmerphone}" titulo="Emerphone"
+                                                servicios="{!v.listasServicios.EmerphoneServiceList}" />
+
+        </div>
+
+        <lightning:spinner aura:id="spinner" variant="brand" class="spin" size="large"/>
+
+    </lightning:card>
+</aura:component>

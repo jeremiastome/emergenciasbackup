@@ -1,0 +1,15 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" controller="Contrato_AsignDeBenefController">
+	<ltng:require scripts="{!$Resource.XappiaUtils}" afterScriptsLoaded="{!c.init}" />
+	
+	<aura:attribute name="recordId" type="String" />
+	<aura:attribute name="isMasive" type="boolean" />
+	<aura:attribute name="hasProducts" type="boolean" />
+	<aura:attribute name="loaded" type="boolean" default="false" />
+	<aura:attribute name="clicked" type="boolean" default="false" />
+	
+	<lightning:button variant="neutral"
+		label="Asignar beneficiarios"
+		onclick="{!c.BringAsignmentPage}"
+		disabled="{!!v.hasProducts}"
+	/>
+</aura:component>

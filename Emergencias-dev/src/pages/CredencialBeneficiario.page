@@ -1,0 +1,31 @@
+<apex:page standardController="Cobertura_de_Beneficiario__c" showHeader="false" applyBodyTag="false" applyHtmlTag="false" standardStylesheets="false"
+	sidebar="false" renderAs="pdf">
+	<apex:stylesheet value="{!URLFOR($Resource.divCredencial)}"/>
+	<head>
+	<style>
+		body {
+		    background-image:url("{!URLFOR($Resource.CredencialProvisoria)}");
+		    background-repeat: no-repeat;
+		    margin:0;
+		}
+	</style>
+	</head>
+	<body>
+		<div class="divCredencial" >
+            <div class="credencialLabel">
+				<apex:outputText value="{!Cobertura_de_Beneficiario__c.Beneficiario__r.Nombre_y_apellido__c}"/>
+			</div>
+            <div class="credencialLabel">
+				<apex:outputText value="{!Cobertura_de_Beneficiario__c.Beneficiario__r.N_mero_nico_de_Beneficiario__c}"/>
+			</div><br/>
+			<apex:outputPanel rendered="{!If(Cobertura_de_Beneficiario__c.Beneficiario__r.Numero_Club_de_Emergencias__c!=null, true,false)}">
+	            <div class="credencialLabel">
+					<apex:outputText value="Nº Club Emergencias"/>
+				</div>
+				<div class="credencialLabel">
+					<apex:outputText value="{!Cobertura_de_Beneficiario__c.Beneficiario__r.Numero_Club_de_Emergencias__c}"/>
+				</div>
+			</apex:outputPanel>
+		</div>
+	</body>
+</apex:page>

@@ -1,0 +1,340 @@
+<apex:page controller="BajaParcialController" >
+    <apex:includeScript value="{!$Resource.jQuery}"/>
+    <style>
+        .recipientUL:first-child {
+        border-top: 1px solid #d8dde6;
+        }
+        
+        .recipientLI {
+        border-bottom: 1px solid #d8dde6;
+        padding-left: 20px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        }
+        
+        .mainCardContainer {
+        margin-top: 15px;
+        padding-left: 15%;
+        padding-right: 15%;
+        }
+        
+        /* specify the td to force it over salesforce standard padding */
+        td.coverageTd {
+        white-space: nowrap;
+        padding: 5px;
+        }
+        
+        .coverageDiv {
+        overflow-x: auto;
+        }
+        
+        .removeButtonDiv {
+        padding-right: 1rem;
+        }
+        
+        table.newRecipientInputTable {
+        border-collapse: separate;
+        border-spacing: 3px;
+        }
+        
+        .requiredField {
+        background-color: red;
+        }
+        
+        .requiredField, .notRequiredField {
+        /* required|notRequired */
+        margin-right: 0.2em;
+        }
+        
+        #toasty {
+        display: none;
+        }
+    </style>
+    
+    <apex:slds />
+    <apex:form >
+        <apex:actionFunction name="searchTitular" action="{!searchTitular}" rerender="titulares"/>
+        <apex:actionFunction name="bajaAllTitulares" action="{!bajaAllTitulares}" rerender="titulares"/>
+        <apex:actionFunction name="bajaTitular" action="{!bajaTitular}" rerender="titulares">
+            <apex:param id="tituIdBaja" name="idTitular" value="" />
+        </apex:actionFunction>
+        <apex:actionFunction name="cancelBajaAllTitulares" action="{!cancelBajaAllTitulares}" rerender="titulares"/>
+        <apex:actionFunction name="cancelBajaTitular" action="{!cancelBajaTitular}" rerender="titulares">
+            <apex:param id="tituIdCancelBaja" name="idTitular" value="" />
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="searchBeneficiario" action="{!searchBeneficiario}" rerender="beneficiarios"/>
+        <apex:actionFunction name="bajaAllBeneficiarios" action="{!bajaAllBeneficiarios}" rerender="beneficiarios"/>
+        <apex:actionFunction name="bajaBeneficiario" action="{!bajaBeneficiario}" rerender="beneficiarios">
+            <apex:param id="benefIdBaja" name="idBeneficiario" value="" />
+        </apex:actionFunction>
+        <apex:actionFunction name="cancelBajaAllBeneficiarios" action="{!cancelBajaAllBeneficiarios}" rerender="beneficiarios"/>
+        <apex:actionFunction name="cancelBajaBeneficiario" action="{!cancelBajaBeneficiario}" rerender="beneficiarios">
+            <apex:param id="benefIdCancelBaja" name="idBeneficiario" value="" />
+        </apex:actionFunction>
+        
+        
+        <!-- ================================================================== -->
+        <div class="mainCardContainer">
+            <div class="slds-scope">
+                <article class="slds-card">
+                    <div class="slds-card__header slds-grid">
+                        <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                            <div class="slds-media__body">
+                                <h2>
+                                    <a href="javascript:void(0);" class="slds-card__header-link slds-truncate">
+                                        <span class="slds-text-heading_small">Titulares</span>
+                                    </a>
+                                </h2>
+                            </div>
+                        </header>
+                        <div class="slds-no-flex">
+                            Nombre del titular:&nbsp;&nbsp;<apex:inputText value="{!titularBuscar}" id="strBuscarTitular"/>
+                            <button class="slds-button slds-button_neutral" onclick="searchTitular(); return false;">
+                                <svg class="slds-button__icon slds-button__icon_left" aria-hidden="true">
+                                    <use xmlns:xlink="http://www.w3.org/1999/xlink"
+                                         xlink:href="{!URLFOR($Asset.SLDS, 'assets/icons/utility-sprite/svg/symbols.svg#new')}"
+                                         />
+                                </svg>Buscar
+                            </button>
+                        </div>
+                    </div>
+                    <!-- ================================================================== -->
+                    <div class="slds-card__body">
+                        <apex:outputPanel id="titulares">
+                            <apex:slds />
+                            <ul class="recipientUL">
+                                <li class="recipientLI" style="display: {!IF(Recipients.size = 0, 'none', 'list-item')};">
+                                    <section>
+                                        <div class="slds-grid">
+                                            <h3 class="slds-text-heading_small slds-accordion__summary-heading">
+                                                Disponibles
+                                            </h3>
+                                            <div class="slds-no-flex removeButtonDiv">
+                                                <button onclick="bajaAllTitulares(); return false;" class="slds-button slds-button_neutral">
+                                                    Seleccionar todos
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </section>
+                                </li>
+                                <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                                    <thead>
+                                        <tr class="slds-text-title_caps">
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Nombre del titular">Nombre del titular</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Dar de baja">Dar de baja</div>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <apex:repeat var="titular" value="{!titulares}" >                                        
+                                            <tr>
+                                                <th scope="row" data-label="Nombre del titular">
+                                                    <div class="slds-truncate" title="{!titular.Cliente__r.Name}">{!titular.Cliente__r.Name}</div>
+                                                </th>
+                                                <th scope="row" data-label="Dar de baja">
+                                                    <div class="slds-no-flex removeButtonDiv">
+                                                        <button onclick="bajaTitular('{!titular.Id}'); return false;" class="slds-button slds-button_neutral">
+                                                            Seleccionar
+                                                        </button>
+                                                    </div>
+                                                </th>
+                                            </tr>
+                                        </apex:repeat>
+                                    </tbody>
+                                </table>
+                                
+                            </ul>
+                            <ul class="recipientUL">
+                                <li class="recipientLI" style="display: {!IF(Recipients.size = 0, 'none', 'list-item')};">
+                                    <section>
+                                        <div class="slds-grid">
+                                            <h3 class="slds-text-heading_small slds-accordion__summary-heading">
+                                                A dar de baja
+                                            </h3>
+                                            <div class="slds-no-flex removeButtonDiv">
+                                                <button onclick="cancelBajaAllTitulares(); return false;" class="slds-button slds-button_neutral">
+                                                    Deseleccionar todos
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </section>
+                                </li>
+                                <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                                    <thead>
+                                        <tr class="slds-text-title_caps">
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Nombre del titular">Nombre del titular</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Cancelar baja">Cancelar baja</div>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <apex:repeat var="titular" value="{!titularesBaja}" >                                        
+                                            <tr>
+                                                <th scope="row" data-label="Nombre del titular">
+                                                    <div class="slds-truncate" title="{!titular.Cliente__r.Name}">{!titular.Cliente__r.Name}</div>
+                                                </th>
+                                                <th scope="row" data-label="Cancelar baja">
+                                                    <div class="slds-no-flex removeButtonDiv">
+                                                        <button onclick="cancelBajaTitular('{!titular.Id}'); return false;" class="slds-button slds-button_neutral">
+                                                            Cancelar Seleccción
+                                                        </button>
+                                                    </div>
+                                                </th>
+                                            </tr>
+                                        </apex:repeat>
+                                    </tbody>
+                                </table>
+                                
+                            </ul>
+                        </apex:outputPanel>
+                    </div>
+                    <div class="slds-card__header slds-grid">
+                        <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                            <div class="slds-media__body">
+                                <h2>
+                                    <a href="javascript:void(0);" class="slds-card__header-link slds-truncate">
+                                        <span class="slds-text-heading_small">Beneficiarios</span>
+                                    </a>
+                                </h2>
+                            </div>
+                        </header>
+                        <div class="slds-no-flex">
+                            Nombre del beneficiario:&nbsp;&nbsp;<apex:inputText value="{!beneficiarioBuscar}" id="strBuscarBeneficiario"/>
+                            <button class="slds-button slds-button_neutral" onclick="searchBeneficiario(); return false;">
+                                <svg class="slds-button__icon slds-button__icon_left" aria-hidden="true">
+                                    <use xmlns:xlink="http://www.w3.org/1999/xlink"
+                                         xlink:href="{!URLFOR($Asset.SLDS, 'assets/icons/utility-sprite/svg/symbols.svg#new')}"
+                                         />
+                                </svg>Buscar
+                            </button>
+                        </div>
+                    </div>
+                    <!-- ================================================================== -->
+                    <div class="slds-card__body">
+                        <apex:outputPanel id="beneficiarios">
+                            <apex:slds />
+                            <ul class="recipientUL">
+                                <li class="recipientLI" style="display: {!IF(Recipients.size = 0, 'none', 'list-item')};">
+                                    <section>
+                                        <div class="slds-grid">
+                                            <h3 class="slds-text-heading_small slds-accordion__summary-heading">
+                                                Disponibles
+                                            </h3>
+                                            <div class="slds-no-flex removeButtonDiv">
+                                                <button onclick="bajaAllBeneficiarios(); return false;" class="slds-button slds-button_neutral">
+                                                    Seleccionar todos
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </section>
+                                </li>
+                                <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                                    <thead>
+                                        <tr class="slds-text-title_caps">
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Nombre del Beneficiario">Nombre del Beneficiario</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Dirección del Beneficiario">Dirección del Beneficiario</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Dar de baja">Dar de baja</div>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <apex:repeat var="beneficiario" value="{!beneficiarios}" >                                        
+                                            <tr>
+                                                <th scope="row" data-label="Nombre del Beneficiario">
+                                                    <div class="slds-truncate" title="{!beneficiario.Nombre__c}">{!beneficiario.Nombre__c} {!beneficiario.Apellido__c}</div>
+                                                </th>
+                                                <th scope="row" data-label="Direccion del Beneficiario">
+                                                    <div class="slds-truncate" title="{!beneficiario.Calle__c}">{!beneficiario.Calle__c} {!beneficiario.Altura__c}</div>
+                                                </th>
+                                                <th scope="row" data-label="Dar de baja">
+                                                    <div class="slds-no-flex removeButtonDiv">
+                                                        <button onclick="bajaBeneficiario('{!beneficiario.Id}'); return false;" class="slds-button slds-button_neutral">
+                                                            Seleccionar
+                                                        </button>
+                                                    </div>
+                                                </th>
+                                            </tr>
+                                        </apex:repeat>
+                                    </tbody>
+                                </table>
+                                
+                            </ul>
+                            <ul class="recipientUL">
+                                <li class="recipientLI" style="display: {!IF(Recipients.size = 0, 'none', 'list-item')};">
+                                    <section>
+                                        <div class="slds-grid">
+                                            <h3 class="slds-text-heading_small slds-accordion__summary-heading">
+                                                A dar de baja
+                                            </h3>
+                                            <div class="slds-no-flex removeButtonDiv">
+                                                <button onclick="cancelBajaAllBeneficiarios(); return false;" class="slds-button slds-button_neutral">
+                                                    Deseleccionar todos
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </section>
+                                </li>
+                                <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                                    <thead>
+                                        <tr class="slds-text-title_caps">
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Nombre del Beneficiario">Nombre del Beneficiario</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Dirección del Beneficiario">Dirección del Beneficiario</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Cancelar baja">Cancelar baja</div>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <apex:repeat var="beneficiario" value="{!beneficiariosBaja}" >                                        
+                                            <tr>
+                                                <th scope="row" data-label="Nombre del Beneficiario">
+                                                    <div class="slds-truncate" title="{!beneficiario.Nombre__c}">{!beneficiario.Nombre__c} {!beneficiario.Apellido__c}</div>
+                                                </th>
+                                                <th scope="row" data-label="Direccion del Beneficiario">
+                                                    <div class="slds-truncate" title="{!beneficiario.Calle__c}">{!beneficiario.Calle__c} {!beneficiario.Altura__c}</div>
+                                                </th>
+                                                <th scope="row" data-label="Cancelar baja">
+                                                    <div class="slds-no-flex removeButtonDiv">
+                                                        <button onclick="cancelBajaBeneficiario('{!beneficiario.Id}'); return false;" class="slds-button slds-button_neutral">
+                                                            Cancelar Seleccción
+                                                        </button>
+                                                    </div>
+                                                </th>
+                                            </tr>
+                                        </apex:repeat>
+                                    </tbody>
+                                </table>
+                                
+                            </ul>
+                        </apex:outputPanel>
+                    </div>
+                    <!-- ================================================================== -->
+                    <footer class="slds-card__footer">
+                        <a class="slds-button slds-button_neutral" href="/{!CaseId}">
+                            Volver
+                        </a>
+                        <apex:commandButton action="{!save}"
+                                            value="Guardar y volver"
+                                            styleClass="slds-button slds-button_brand"/>
+                    </footer>
+                </article>
+            </div>
+        </div>
+    </apex:form>
+</apex:page>

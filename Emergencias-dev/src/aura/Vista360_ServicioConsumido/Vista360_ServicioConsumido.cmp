@@ -1,0 +1,59 @@
+<aura:component access="global">
+  
+  <aura:attribute name="servicio" type="Object" />
+
+  <article class="slds-tile slds-hint-parent">
+
+    <div class="slds-grid slds-grid_align-spread slds-has-flexi-truncate">
+      <h3 class="slds-tile__title slds-truncate slds-text-heading_small" title="{!v.servicio.NumeroServicio}">{!v.servicio.NumeroServicio}</h3>
+    </div>
+
+    <div class="slds-tile__detail">
+
+      <dl class="slds-dl--horizontal">
+        <dt class="slds-dl--horizontal__label">
+          <p class="slds-truncate" title="Instante">Instante:</p>
+        </dt>
+        <dd class="slds-dl--horizontal__detail slds-tile__meta">
+          <p class="slds-truncate" title="{!v.servicio.InstanteSF}"><ui:outputDate value="{!v.servicio.InstanteSF}"/></p>
+        </dd>
+
+        <dt class="slds-dl--horizontal__label">
+          <p class="slds-truncate" title="Tipo de servicio">Tipo de servicio:</p>
+        </dt>
+        <dd class="slds-dl--horizontal__detail slds-tile__meta">
+          <p class="slds-truncate" title="{!v.servicio.TipoServicio}"><ui:outputText value="{!v.servicio.TipoServicio}"/></p>
+        </dd>
+
+        <aura:if isTrue="{!!empty(v.servicio.Clasificacion)}">
+          <dt class="slds-dl--horizontal__label">
+            <p class="slds-truncate" title="Clasificacion">Clasificación:</p>
+          </dt>
+          <dd class="slds-dl--horizontal__detail slds-tile__meta">
+            <p class="slds-truncate" title="{!v.servicio.Clasificacion}"><ui:outputText value="{!v.servicio.Clasificacion}"/></p>
+          </dd>
+        </aura:if>
+
+        <aura:if isTrue="{!!empty(v.servicio.DestinoFinal)}">
+          <dt class="slds-dl--horizontal__label">
+            <p class="slds-truncate" title="Destino final">Destino final:</p>
+          </dt>
+          <dd class="slds-dl--horizontal__detail slds-tile__meta">
+            <p class="slds-truncate" title="{!v.servicio.DestinoFinal}"><ui:outputText value="{!v.servicio.DestinoFinal}"/></p>
+          </dd>
+        </aura:if>
+
+        <aura:if isTrue="{!!empty(v.servicio.Diagnostico)}">
+          <dt class="slds-dl--horizontal__label">
+            <p class="slds-truncate" title="Diagnostico">Diagnóstico:</p>
+          </dt>
+          <dd class="slds-dl--horizontal__detail slds-tile__meta">
+            <p class="slds-truncate" title="{!v.servicio.Diagnostico}"><ui:outputText value="{!v.servicio.Diagnostico}"/></p>
+          </dd>
+        </aura:if>
+      </dl>
+
+    </div>
+  </article>
+
+</aura:component>

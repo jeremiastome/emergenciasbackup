@@ -1,0 +1,19 @@
+<aura:component >
+
+  <aura:attribute name="facturas" type="Object[]"/>
+  <aura:attribute name="pagos" type="Object[]"/>
+  <aura:attribute name="creditos" type="Object[]"/>
+  <aura:attribute name="saldo" type="String"  default="0" />
+  <aura:attribute name="classname" type="String" />
+    
+  <aura:handler name="cargarSaldo" event="c:Vista360_SaldoEvent" action="{!c.init}"/>
+	<aura:method name="darSaldo" action="{!c.init}" access="PUBLIC"/> 
+	<div class="slds-text-heading_medium">	
+        
+        <div class="{!v.classname}" style="display:inline;">{!v.saldo}</div>	
+        
+        
+    </div>
+
+
+</aura:component>

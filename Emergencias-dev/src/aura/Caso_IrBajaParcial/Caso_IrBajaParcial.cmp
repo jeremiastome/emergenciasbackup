@@ -1,0 +1,29 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" controller="Caso_IrBajaParcialController">
+	<ltng:require scripts="{!$Resource.XappiaUtils}" afterScriptsLoaded="{!c.init}"/>
+	
+	<aura:attribute name="recordId" type="String" />
+	<aura:attribute name="contractId" type="String" default=""/>
+	<aura:attribute name="hasContract" type="boolean" default="false" />
+	
+	<aura:attribute name="isLoading" type="boolean" default="true" />
+	
+	<div>
+		<aura:if isTrue="{!v.isLoading}" >
+			<div style="position:relative; min-height: 45px;">
+				<div role="status" class="slds-spinner slds-spinner_brand slds-spinner_medium">
+					<span class="slds-assistive-text">Cargando</span>
+					<div class="slds-spinner__dot-a"></div>
+					<div class="slds-spinner__dot-b"></div>
+				</div>
+			</div>
+			<aura:set attribute="else">
+				<aura:if isTrue="{!v.hasContract}" >
+					<lightning:button label="Baja parcial" onclick="{!c.onClick}" />
+					<aura:set attribute="else">
+						{!$Label.c.El_caso_no_tiene_contrato_asociado}
+					</aura:set>
+				</aura:if>
+			</aura:set>
+		</aura:if>
+	</div>
+</aura:component>

@@ -1,0 +1,53 @@
+<aura:component controller="Vista360Controller">
+
+  <aura:attribute name="documento" type="Object" />
+  <aura:attribute name="nroDocumentoRemoto" type="String" />
+  <aura:attribute name="showModal" type="String" default="false" />
+  
+
+  <aura:handler name="change" value="{!v.showModal}" action="{!c.toggleModal}" />
+  <aura:handler name="change" value="{!v.nroDocumentoRemoto}" action="{!c.obtenerDetalles}" />
+  
+  <div aura:id="detailModal" role="dialog" tabindex="-1" aria-labelledby="header43" class="slds-modal">
+    
+    <div class="slds-modal__container">
+
+      <div class="slds-modal__header">
+
+        <button class="slds-button slds-modal__close " title="Close" onclick="{!c.toggleModal}">
+          <lightning:icon iconName="utility:close" variant="bare" ></lightning:icon>
+          <span class="slds-assistive-text">Close</span>
+        </button>
+        <h2 class="slds-text-heading--medium">Detalles - {!v.nroDocumentoRemoto}</h2>
+
+      </div>
+
+      <div class="slds-modal__content slds-p-around--medium slds-grid slds-wrap slds-grid--align-spread">
+        
+        <div class="slds-p-left--medium slds-p-right--medium">
+          <ul class="slds-list--vertical slds-has-dividers--top-space">
+            <aura:iteration items="{!v.documento.detalles}" var="detalle">
+              <li class="slds-list__item">
+                <c:Vista360_DetalleDocumentoContable detalle="{!detalle}" />
+              </li>
+            </aura:iteration>
+          </ul>
+
+          <aura:if isTrue="{!v.documento.mensaje != null}">
+            <ui:outputText value="{!v.documento.mensaje}"/>
+          </aura:if>
+        </div>
+      </div>
+
+    </div>
+    
+  </div>
+  <div aura:id="overlay" class="slds-backdrop"></div>
+
+  <!-- Esto se utiliza para poder renderizar el modal por encima del header global de lightning.
+      Si no se hace la parte superior del modal queda oculta y no permite cerrar el mismo. -->
+  <aura:attribute name="modalCSS" type="String" default="" />
+  <style>
+    {!v.modalCSS}
+  </style>
+</aura:component>

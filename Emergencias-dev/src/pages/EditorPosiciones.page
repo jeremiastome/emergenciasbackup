@@ -1,0 +1,93 @@
+<apex:page controller="EditorPosicionesController" lightningStylesheets="true" id="page">
+	<style>
+		input[type="text"], select {
+			height : 26px ;
+			min-width : 30px !important;
+			margin-top: 3px !important;
+		}
+	</style>
+	
+	<apex:slds >
+		<apex:form id="form">
+			<apex:pageBlock title="Establecer para todos registros" id="block">
+				<div class="slds-grid">
+					<div style="margin-right:20px;" >
+						<apex:inputText value="{!Posicion_Comun.Valor__c}"
+							size="15"
+							onkeypress="return inputLimiter(event,'Currency');"
+							html-placeholder="Valor"
+						/>
+					</div>
+							
+					<div style="margin-right:20px;"  >
+						<apex:inputField value="{!Posicion_Comun.Unidad__c}"
+							label="Unidad"
+							id="list"
+							Styleclass="slds-combobox-picklist"
+						/>
+					</div>
+					<div>
+						<apex:commandButton value="Distribuir valores"
+							action="{!setAll}"
+							style="color: white; background-color:#0070d2;"
+						/>
+					</div>
+				</div>
+			</apex:pageBlock>
+			<apex:pageBlock title="Posiciones:" mode="inlineEdit" id="table">
+				<apex:pageBlockTable value="{! positions }" var="pos" id="block">
+					<apex:column headerValue="Producto">
+						<apex:outputText value="{!pos.Producto__c}"/>
+					</apex:column>
+					<apex:column headerValue="Provincia" rendered="{!NOT(isDocDetalle)}">
+						<apex:outputText value="{!ProvinceValues[pos.Provincia__c]}" />
+					</apex:column>
+					<apex:column headerValue="IVA" rendered="{!NOT(isDocDetalle)}">
+						<apex:outputText value="{!pos.IVA__c}"/>
+					</apex:column>
+					<apex:column headerValue="Unidad">
+						<apex:inputField value="{!pos.Unidad__c}"/>
+					</apex:column>
+					<apex:column headerValue="Valor" id="valor">
+						<apex:inputText value="{!pos.Valor__c}"
+							onkeypress="return inputLimiter(event,'Currency');"
+							id="input"
+						/>
+					</apex:column>
+				</apex:pageBlockTable>
+				<div class="slds-grid slds-grid_align-end" style="margin-top:15px;">
+					<apex:commandButton value="Cancelar" action="{!Cancel}" style="color: white; background-color:#0070d2;" />
+					<apex:commandButton value="Guardar" action="{!save}"  style="color: white; background-color:#0070d2;" />
+				</div>
+				<apex:pageBlockButtons location="bottom">
+					<apex:pagemessages escape="true"/>
+				</apex:pageBlockButtons>
+			</apex:pageBlock>
+		</apex:form>
+	</apex:slds>
+	<script>
+		function inputLimiter(e,allow) {
+			var AllowableCharacters = '';
+			
+			if (allow == 'Letters'){AllowableCharacters=' ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';}
+			if (allow == 'Numbers'){AllowableCharacters='1234567890';}
+			if (allow == 'NameCharacters'){AllowableCharacters=' ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-.\'';}
+			if (allow == 'NameCharactersAndNumbers'){AllowableCharacters='1234567890 ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-\'';}
+			if (allow == 'Currency'){AllowableCharacters='1234567890.';}
+			
+			var k = document.all?parseInt(e.keyCode): parseInt(e.which);
+			if(k!=13 && k!=8 && k!=0) {
+				if((e.ctrlKey==false) && (e.altKey==false)) {
+					return (AllowableCharacters.indexOf(String.fromCharCode(k))!=-1);
+				}
+				else {
+					return true;
+				}
+			}
+			else {
+				return true;
+			}
+		}
+				
+	</script>
+</apex:page>

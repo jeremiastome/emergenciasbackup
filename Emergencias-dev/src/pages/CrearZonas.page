@@ -1,0 +1,254 @@
+<apex:page controller="CrearZonasController">
+	<!-- Google maps APIkey: AIzaSyDqLVi4VUWGY89iWkBFqph8cUjZ2aSiC10 -->
+	<style>
+		#map {
+			height: 100%;
+			min-height: 200px;
+		}
+		
+		.mainCardContainer {
+			margin-top: 15px;
+			padding-left: 5%;
+			padding-right: 5%;
+		}
+		
+		tr.spaceUnder>th {
+			padding-bottom: 0.4em;
+		}
+	</style>
+	<apex:includeScript value="https://maps.googleapis.com/maps/api/js?key=AIzaSyDqLVi4VUWGY89iWkBFqph8cUjZ2aSiC10&callback=initMap"
+		loadOnReady="true"
+	/>
+	<apex:slds />
+	
+	<apex:includeScript value="{!$Resource.jQuery}"/>
+	<script>
+		var nextMarkerId = 0;
+		var map;
+		var vertList = [];
+		var markers = [];
+		var mapPolygon;
+		var $j = jQuery.noConflict();
+		
+		function initMap() {
+			map = new google.maps.Map(document.getElementById('map'), {
+				center: {lat: -34.611875, lng: -58.442944},
+				zoom: 13,
+				clickableIcons: false,
+				streetViewControl: false
+			});
+			google.maps.event.addListener(map, 'click', addVertex);
+			
+			mapPolygon = new google.maps.Polygon({
+				paths: vertList,
+				strokeColor: '#FF0000',
+				strokeOpacity: 0.8,
+				strokeWeight: 2,
+				fillColor: '#FF0000',
+				fillOpacity: 0.35
+			});
+			mapPolygon.setMap(map);
+			google.maps.event.addListener(mapPolygon, 'click', addVertex);
+		}
+		
+		function loadZone() {
+			zoneId = $j("[subId=zoneId]").val();
+			clearZone();
+			$j("[subId=zoneId]").val(zoneId);
+			
+			zone = zonesMap[zoneId];
+			$j("[subId=name]").val(zone.Name);
+			$j("[subId=type]").val(zone.Tipo__c);
+			
+			vertList = JSON.parse(zone.Posicion__c);
+			
+			bounds = new google.maps.LatLngBounds();
+			for (var i = 0; i < vertList.length; i++) {
+				markers[i] = new google.maps.Marker({
+					position: vertList[i],
+					map: map,
+					draggable: true
+				});
+				
+				markers[i].id = nextMarkerId++;
+				google.maps.event.addListener(markers[i], 'click', onMarkerClick);
+				google.maps.event.addListener(markers[i], 'dragend', onMarkerDragEnd);
+				
+				bounds.extend(vertList[i]);
+			}
+			
+			map.setCenter(bounds.getCenter());
+			map.fitBounds(bounds);
+			mapPolygon.setPaths(vertList);
+		}
+		
+		function clearZone() {
+			nextMarkerId = 0;
+			$j("[subId=zoneId]").val("");
+			$j("[subId=name]").val("");
+			//$j("[subId=type]").val("");
+			
+			clearVertices();
+		}
+		
+		function clearVertices() {
+			for (var i = 0; i < markers.length; i++) {
+				markers[i].setMap(null);
+			}
+			vertList = [];
+			markers = [];
+			mapPolygon.setPaths(vertList);
+		}
+		
+		function saveZone() {
+			//TODO check input not empty
+			$j("[subId=position]").val(JSON.stringify(vertList));
+			saveEditableZone();
+		}
+		
+		function addVertex(event) {
+			
+			var pos = {lat: event.latLng.lat(), lng: event.latLng.lng()};
+			//add new vertex to the polygon
+			vertList.push(pos);
+			
+			//Add vertex marker
+			var index = -1 + markers.push(
+				new google.maps.Marker({
+					position: pos,
+					map: map,
+					draggable: true
+				})
+			);
+			markers[index].id = nextMarkerId++;
+			google.maps.event.addListener(markers[index], 'click', onMarkerClick);
+			google.maps.event.addListener(markers[index], 'dragend', onMarkerDragEnd);
+			
+			//update the polygon
+			mapPolygon.setPaths(vertList);
+		}
+		
+		function removeVertex(index) {
+			//remove vertex from the polygon
+			vertList.splice(index, 1);
+			//update the polygon
+			mapPolygon.setPaths(vertList);
+		}
+		
+		function onMarkerClick(event) {
+			var index;
+			for (var i = 0; i < markers.length; i++) {
+				if(markers[i].id == this.id) {
+					index = i;
+					break;
+				}
+			}
+			markers[index].setMap(null);
+			vertList.splice(index, 1);
+			markers.splice(index, 1);
+			
+			//update the polygon
+			mapPolygon.setPaths(vertList);
+		}
+		
+		function onMarkerDragEnd(event) {
+			var index;
+			for (var i = 0; i < markers.length; i++) {
+				if(markers[i].id == this.id) {
+					index = i;
+					break;
+				}
+			}
+			vertList[index] = {lat: event.latLng.lat(), lng: event.latLng.lng()};
+			//update the polygon
+			mapPolygon.setPaths(vertList);
+		}
+		
+		function deleteSelectedZone() {
+			clearVertices();
+			$j("[subId=name]").val("");
+			//$j("[subId=type]").val("");
+			
+			deleteZone();
+		}
+		
+		function hideZonesByType() {
+			var zoneType = $j("[subId=type]").val();
+			$j("[subId=zoneId]").children().each(function(child) {
+				var display = 'none';
+				if(zonesMap[$j(this).val()].Tipo__c == zoneType) {
+					display = 'block';
+				}
+				$j(this).css('display', display);
+			});
+		}
+	</script>
+	<apex:form >
+		<apex:actionFunction name="saveEditableZone" action="{!saveEditableZone}" rerender="zoneData" />
+		<apex:actionFunction name="deleteZone" action="{!deleteZone}" rerender="zoneData" />
+		
+		<apex:inputHidden value="{!ZoneToEdit.Position}" html-subId="position"/>
+		<!-- =============================================================== -->
+		<div class="slds-scope mainCardContainer">
+			<article class="slds-card">
+				<div class="slds-card__header slds-grid">
+					<header class="slds-media slds-media_center slds-has-flexi-truncate">
+						<div class="slds-media__body">
+							<h2>
+								<a href="javascript:void(0);" class="slds-card__header-link slds-truncate" title="[object Object]">
+									<span class="slds-text-heading_small">Creacion de zonas</span>
+								</a>
+							</h2>
+						</div>
+					</header>
+				</div>
+				<div class="slds-card__body slds-card__body_inner">
+					<table style="width: 100%;">
+						<tr class="spaceUnder">
+							<th style="width: 20%;">
+								Zonas de tipo:
+								<apex:SelectList multiselect="false"
+									size="1"
+									value="{!ZoneToEdit.Type}"
+									html-subId="type"
+									onchange="hideZonesByType(); return false;"
+								>
+									<apex:selectOptions value="{!ZoneTypes}"/>
+								</apex:SelectList>
+							</th>
+							<th>
+								&nbsp;Nombre:
+								<div style="font-weight: normal; display: inline;">
+									<apex:inputText value="{!ZoneToEdit.Name}" html-subId="name"/>
+									<input class="slds-button slds-button_brand" type="button" value="Guardar" onClick="saveZone(); return false;"/>
+									<input class="slds-button slds-button_success" type="button" value="Nueva zona" onClick="clearZone(); return false;"/>
+									<input class="slds-button slds-button_destructive" type="button" value="Eliminar zona" onClick="deleteSelectedZone(); return false;"/>
+								</div>
+							</th>
+						</tr>
+						<tr>
+							<td>
+								<apex:outputPanel id="zoneData">
+									<apex:SelectList value="{!ZoneToEdit.ZoneId}"
+										html-subId="zoneId"
+										multiselect="false"
+										size="20"
+										style="width: 100%;"
+										onchange="loadZone();"
+									>
+										<apex:selectOptions value="{!ZoneSelectOptions}"/>
+									</apex:SelectList>
+									<script>
+										var zonesMap = {!ZonesJson};
+										hideZonesByType();
+									</script>
+								</apex:outputPanel>
+							</td>
+							<td id="map"/>
+						</tr>
+					</table>
+				</div>
+			</article>
+		</div>
+	</apex:form>
+</apex:page>

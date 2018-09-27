@@ -1,0 +1,60 @@
+<aura:component implements="force:appHostable,flexipage:availableForRecordHome,force:hasRecordId" controller="Caso_ModificarContratoController">
+	<ltng:require scripts="{!$Resource.XappiaUtils}" afterScriptsLoaded="{!c.init}" />
+	
+	<aura:attribute name="recordId" type="String" />
+	<aura:attribute name="contractId" type="String" />
+	<aura:attribute name="contractIsMassive" type="boolean" default="false"/>
+	<aura:attribute name="hasContract" type="boolean" default="false"/>
+	<aura:attribute name="isLoading" type="boolean" default="true"/>
+	<aura:attribute name="ShowAddProducts" type="boolean" default="false"/>
+	<aura:attribute name="AddProductsOnlyDiscounts" type="boolean" default="false"/>
+	<aura:attribute name="ShowAddRecipients" type="boolean" default="false"/>
+	<aura:attribute name="contractDistChannel" type="String" />
+	<aura:attribute name="holders" type="Object[]" />
+	<aura:attribute name="holderId" type="String" />
+	<aura:attribute name="caseSettingsType" type="String" />
+	
+	<div style="margin: 1rem;">
+		<lightning:spinner variant="brand" size="large" class="{!v.isLoading?'':'slds-hide'}"/>
+		<aura:if isTrue="{!v.hasContract}">
+			<lightning:card >
+				<aura:if isTrue="{!v.ShowAddProducts}">
+					<div style="text-align: center; margin-bottom: 0.5em;">
+						<lightning:button label="{!v.AddProductsOnlyDiscounts?'Modificar bonificaciones':'Asignar produtos'}"
+							onclick="{!c.goToAddProducts}"
+							variant="brand"
+						/>
+					</div>
+				</aura:if>
+				<aura:if isTrue="{!v.ShowAddRecipients}">
+					<p class="slds-p-horizontal_small">
+						<div style="text-align: center;">
+							<lightning:button label="Asignar beneficiarios"
+								onclick="{!c.goToAddRecipients}"
+								variant="brand"
+							/>
+						</div>
+						<br/>
+						<div class="slds-text-heading_small">
+							Crear beneficiarios:
+						</div>
+						<lightning:combobox name="HolderSelect"
+							label="Titular"
+							placeholder="{!v.holders[0].label}"
+							value="{!v.holderId}"
+							options="{!v.holders}"
+						/>
+						<br/>
+						<div style="text-align: center;">
+							<c:CreateRecipientButtons holderId="{!v.holderId}"
+								contractId="{!v.contractId}"
+								distributionChannel="{!v.contractDistChannel}"
+								caseId="{!v.caseSettingsType == 'Addition'?v.recordId:''}"
+							/>
+						</div>
+					</p>
+				</aura:if>
+			</lightning:card>
+		</aura:if>
+	</div>
+</aura:component>

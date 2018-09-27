@@ -1,0 +1,24 @@
+<aura:component >
+
+  <aura:attribute name="icono" type="String"/>
+  <aura:attribute name="titulo" type="String"/>
+  <aura:attribute name="servicios" type="Object[]"/>
+    
+  <lightning:card iconName="{!v.icono}" title="{!v.titulo}" class="slds-is-relative slds-theme_default">
+    <ui:scrollerWrapper class="scrollSize">
+    
+        <ul class="slds-list--vertical slds-has-dividers--top-space">
+          <aura:iteration items="{!v.servicios}" var="servicio">
+            <li class="slds-list__item">
+              <c:Vista360_ServicioConsumido servicio="{!servicio}" />
+            </li>
+          </aura:iteration>
+          <aura:if isTrue="{!empty(v.servicios)}">
+            <li class="slds-list__item"><p>No hay datos</p></li>
+          </aura:if>
+        </ul>
+
+    </ui:scrollerWrapper>
+  </lightning:card>
+
+</aura:component>

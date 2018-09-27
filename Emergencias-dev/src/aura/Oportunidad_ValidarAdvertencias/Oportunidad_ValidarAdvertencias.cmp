@@ -1,0 +1,52 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" controller="Opp_ValidarAdvertenciasController">
+	<ltng:require scripts="{!$Resource.XappiaUtils}" afterScriptsLoaded="{!c.getOppWarnings}" />
+	<aura:attribute name="recordId" type="String" />
+	<aura:attribute name="oppWarnings" type="Object[]" default="[]" />
+	<aura:attribute name="oppValidated" type="boolean" default="false" />
+
+	<aura:attribute name="isLoading" type="boolean" default="true" />
+
+	<!-- 7
+	<br/> -->
+	<lightning:card >
+		<aura:set attribute="title">
+			{!$Label.c.Titulo_advertencias}
+		</aura:set>
+		<aura:set attribute="actions">
+			<lightning:button label="Validar advertencias" onclick="{!c.validateOppWarnings}"/>
+		</aura:set>
+		<p class="slds-p-horizontal--small">
+			<aura:if isTrue="{!v.isLoading != true}" >
+				<aura:if isTrue="{!v.oppWarnings.length != 0}" >
+					<table>
+						<aura:iteration items="{!v.oppWarnings}" var="warn">
+							<tr>
+								<td style="padding-right: 5px;">
+									<lightning:icon iconName="utility:warning" variant="warning" size="medium" />
+								</td>
+								<td>
+									{!warn.Detalle__c}
+								</td>
+							</tr>
+						</aura:iteration>
+					</table>
+					<aura:set attribute="else">
+						{!v.oppValidated?
+							$Label.c.No_hay_advertencias:
+							$Label.c.Oportunidad_no_validada
+						}
+					</aura:set>
+				</aura:if>
+				<aura:set attribute="else">
+					<div style="position:relative; min-height: 45px;">
+						<div role="status" class="slds-spinner slds-spinner_brand slds-spinner_medium">
+							<span class="slds-assistive-text">Cargando</span>
+							<div class="slds-spinner__dot-a"></div>
+							<div class="slds-spinner__dot-b"></div>
+						</div>
+					</div>
+				</aura:set>
+			</aura:if>
+		</p>
+	</lightning:card>
+</aura:component>

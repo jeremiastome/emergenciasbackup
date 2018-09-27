@@ -1,0 +1,14 @@
+<aura:component implements="flexipage:availableForAllPageTypes" controller="Inicio_BotonAsignarCasoController">
+	<ltng:require scripts="{!$Resource.XappiaUtils}" />
+	<!-- afterScriptsLoaded="{c.init}" -->
+	<aura:attribute name="QueueName" type="String" default=""/>
+	<aura:attribute name="CaseReason" type="String" default=""/>
+	<aura:attribute name="allowMultipleCases" type="boolean" default="false"/>
+	<aura:attribute name="isLoading" type="boolean" default="false"/>
+	<!-- 5
+	<br/> -->
+	<div style="margin: 1rem; text-align: center;">
+		<lightning:spinner variant="brand" size="large" class="{!v.isLoading?'':'slds-hide'}"/>
+		<lightning:button variant="brand" label="{!'Siguiente caso de ' + v.QueueName}" onclick="{!c.goToNextCase}" />
+	</div>
+</aura:component>

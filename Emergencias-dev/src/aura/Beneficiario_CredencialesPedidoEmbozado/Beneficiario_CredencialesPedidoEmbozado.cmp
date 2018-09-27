@@ -1,0 +1,80 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" controller="Beneficiario_RequestEmbozadoController">
+    <ltng:require scripts="{!$Resource.XappiaUtils}" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="beneficiarios" type="Beneficiario__c[]" />
+    <aura:attribute name="beneficiariosWrapper" type="Beneficiario_RequestEmbozadoController.wrapperBeneficiario[]" />
+    
+    <aura:attribute name="showSpinner" type="Object" default="true" />
+    
+    <aura:if isTrue="{! v.showSpinner}" >
+        <lightning:spinner aura:id="spinner" variant="spinner" size="large"/>	
+    </aura:if>
+    
+    <lightning:card >
+        <aura:set attribute="title">
+            Pedidos Embozados Beneficiarios
+        </aura:set>
+        <p class="slds-p-horizontal_small">
+            
+            <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                <thead>
+                	<tr class="slds-text-title_caps">
+						<th scope="col">
+                        	<div class="slds-truncate" title="Seleccionar"> 
+                            	<aura:if isTrue="{!!empty(v.beneficiariosWrapper)}">
+                                	<ui:inputCheckbox label="" class="check" aura:id="master" click="{!c.checkAll}" /> 
+                    			</aura:if>
+
+                            </div>
+                        </th>
+                        <th scope="col">
+                        	<div class="slds-truncate" title="Nombre">Nombre</div>
+                        </th>
+                       	<th scope="col">
+                        	<div class="slds-truncate" title="Apellido">Apellido</div>
+                        </th>
+                	</tr>
+                </thead>
+                
+                <tbody>
+                    <aura:if isTrue="{!empty(v.beneficiariosWrapper)}">
+                        <tr>
+                            <td data-label="No existen" colspan="3">
+                    			<div class="slds-truncate" >No existen beneficiarios que requieran credencial.</div>
+                        	</td>
+                        </tr>
+                    </aura:if>
+                    <aura:iteration items="{!v.beneficiariosWrapper}" var="beneficiarioWr">
+                        <tr>
+                            <td data-label="Seleccionar">
+                                <div class="slds-truncate" >
+									<aura:if isTrue="{!!beneficiarioWr.created}">
+										<ui:inputCheckbox value="{!beneficiarioWr.selected}"  
+														 aura:id="dependent"/>
+
+										<aura:set attribute="else">
+											<ui:outputCheckbox value="{!beneficiarioWr.selected}"  
+															aura:id="dependent" /> 
+                    					</aura:set>
+									</aura:if>
+                                </div>
+                            </td>
+                            <td data-label="Nombre">
+                                <div class="slds-truncate" >{!beneficiarioWr.beneficiario.Nombre__c}</div>
+                            </td>
+                            <td data-label="CBU">
+                                <div class="slds-truncate" >{!beneficiarioWr.beneficiario.Apellido__c}</div>
+                            </td>
+                        </tr>
+                    </aura:iteration>
+                </tbody>
+            </table>			
+        </p>
+        <aura:set attribute="footer">
+            <lightning:button variant="brand" label="Generar Pedido de Embozado" onclick="{!c.save}" />
+        </aura:set>
+        
+    </lightning:card>
+</aura:component>

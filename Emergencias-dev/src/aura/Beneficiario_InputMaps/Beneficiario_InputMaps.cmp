@@ -1,0 +1,4 @@
+<aura:component >
+	<ui:inputText label="Buscar dirección" change="{!c.initAutocomplete}" value="{!v.searchbar}"/>
+    <div id="map"></div>
+</aura:component>

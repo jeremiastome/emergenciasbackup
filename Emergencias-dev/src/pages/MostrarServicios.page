@@ -1,0 +1,259 @@
+<apex:page controller="MostrarServiciosController" doctype="html-5.0">
+	<apex:includeScript value="{!$Resource.jQuery}"/>
+	<script>
+		var $j = jQuery.noConflict();
+		var productDisplayStatuses = [];
+		var additionalsDisplayStatuses = [];
+		var discountsDisplayStatuses = [];
+		var servicesDisplayStatuses = [];
+		
+		$j(document).ready(function () {
+			regenerateOpportunityLineItems();
+		});
+		
+		function hideSpinner() {
+			$j("#spinner").hide();
+		}
+		
+		function showSpinner() {
+			$j("#spinner").show();
+		}
+		
+		function toggleAccordion(index) {
+			var isOpen = !productDisplayStatuses[index];
+			
+			var prodSwitch = $j("#productSwitch" + index);
+			$j("#productContent" + index).toggle(400);
+			$j("[subId=productShowInput" + index + "]").val(isOpen);
+			
+			var prodName = $j("#prodName" + index);
+			prodName.toggleClass("ElemOpen");
+			prodName.toggleClass("ElemClosed");
+			
+			productDisplayStatuses[index] = isOpen;
+		}
+		
+		function toggleAdditionals(index) {
+			var isOpen = !additionalsDisplayStatuses[index];
+			
+			$j("[subId=showAdditionalsInput" + index + "]").val(isOpen);
+			$j("#additionalChecks" + index).toggle(400);
+			var buttonElem = $j("#additionalsButton" + index);
+			buttonElem.toggleClass("ElemOpen");
+			buttonElem.toggleClass("ElemClosed");
+			
+			additionalsDisplayStatuses[index] = isOpen;
+		}
+		
+		function toggleDiscounts(index) {
+			var isOpen = !discountsDisplayStatuses[index];
+			
+			$j("[subId=showDiscountsInput" + index + "]").val(isOpen);
+			$j("#discountsDetails" + index).toggle(400);
+			var buttonElem = $j("#discountsButton" + index);
+			buttonElem.toggleClass("ElemOpen");
+			buttonElem.toggleClass("ElemClosed");
+			
+			discountsDisplayStatuses[index] = isOpen;
+		}
+		
+		function toggleServices(index) {
+			var isOpen = !servicesDisplayStatuses[index];
+			
+			$j("[subId=showServicesInput" + index + "]").val(isOpen);
+			$j("#servicesDetail" + index).toggle(400);
+			var buttonElem = $j("#servicesButton" + index);
+			buttonElem.toggleClass("ElemOpen");
+			buttonElem.toggleClass("ElemClosed");
+			
+			servicesDisplayStatuses[index] = isOpen;
+		}
+	</script>
+	
+	<style>
+		span.ElemOpen:before {
+			content: "\002D";
+			font-weight: bold;
+			font-size: 1.3em;
+			min-width: 0.7em;
+			display: inline-block;
+			text-align: center;
+		}
+		
+		span.ElemClosed:before {
+			content: "\002B";
+			font-weight: bold;
+			font-size: 1.3em;
+			min-width: 0.7em;
+			display: inline-block;
+			text-align: center;
+		}
+		
+		.table {
+
+		}
+		
+		.discountsTable {
+			padding-top: 0.2rem;
+			overflow: auto;
+		}
+	</style>
+	<apex:slds />
+	
+	<apex:form >
+		<apex:actionFunction action="{!regenerateOpportunityLineItems}"
+			name="regenerateOpportunityLineItems"
+			rerender="ProductsSection"
+			oncomplete="hideSpinner(); return false;"
+		/>
+		
+		<!-- ===================================================================== -->
+		<div class="slds-scope">
+			<article class="slds-card">
+				<div class="slds-card__body slds-card__body_inner">
+					<apex:outputPanel id="ProductsSection">
+
+						<ul class="slds-accordion">
+							<!-- ===================================================== -->
+							<!-- Products -->
+							<apex:repeat value="{!Products}" var="Product">
+								<li class="slds-accordion__list-item">
+									<section class="slds-accordion__section slds-is-open">
+										<!-- =========================================== -->
+										<!-- Product header -->
+										<div style="display:inline-flex; width: 100%;" class="slds-accordion__summary">
+											<h3 class="slds-text-heading_small slds-accordion__summary-heading">
+												<button
+													id="productSwitch{!Product.Index}"
+													class="slds-button slds-button_reset slds-accordion__summary-action"
+													onclick="toggleAccordion({!Product.Index}); return false;"
+												>
+													<span id="prodName{!Product.Index}" class="slds-truncate ElemClosed">
+														{!Product.MainProduct.Numero__c}
+													</span>
+												</button>
+											</h3>
+										</div>
+										<!-- End Product header -->
+										<!-- =========================================== -->
+										<!-- Product details -->
+										<div id="productContent{!Product.Index}" style="display: none">
+											<!-- =================================== -->
+											<div id="Services">
+												<button class="slds-button slds-button_reset slds-accordion__summary-action" onClick="toggleServices({!Product.Index}); return false;">
+													<span id="servicesButton{!Product.Index}" class="slds-truncate ElemClosed">
+														Servicios:
+													</span>
+												</button>
+												<div id="servicesDetail{!Product.Index}" style="display: none; padding-top: 0.2rem;">
+													<apex:outputPanel rendered="{!Product.Services.size > 0}">
+														<ul class="slds-list_dotted">
+															<apex:repeat value="{!Product.Services}" var="Service">
+																<li>{!Service.Name}</li>
+															</apex:repeat>
+														</ul>
+													</apex:outputPanel>
+													<apex:outputPanel rendered="{!Product.Services.size == 0}">
+														<br/>
+														{!$Label.Producto_sin_servicios}
+													</apex:outputPanel>
+												</div>
+											</div>
+											<div id="Additionals">
+												<button class="slds-button slds-button_reset slds-accordion__summary-action" onClick="toggleAdditionals({!Product.Index}); return false;">
+													<span id="additionalsButton{!Product.Index}" class="slds-truncate ElemClosed">
+														Adicionales
+													</span>
+												</button>
+												<div id="additionalChecks{!Product.Index}" style="display: none; padding-top: 0.5rem;">
+													<apex:outputPanel rendered="{!Product.AdditionalsSelectOptions.size == 0}">
+														{!$Label.Producto_sin_adicionales}
+													</apex:outputPanel>
+													<ul class="slds-list_dotted">
+														<apex:repeat value="{!Product.AdditionalsSelectOptions}" var="Additional">
+															<li>{!Additional.Label}</li>
+														</apex:repeat>
+													</ul>
+												</div>
+												<!-- ======================== -->
+											</div>
+											<div id="Descuentos">
+												<button class="slds-button slds-button_reset slds-accordion__summary-action" onClick="toggleDiscounts({!Product.Index}); return false;">
+													<span id="discountsButton{!Product.Index}" class="slds-truncate ElemClosed">
+														Descuentos:
+													</span>
+												</button>
+												<div
+													id="discountsDetails{!Product.Index}"
+													style="display: none;"
+													class="discountsTable"
+												>
+													<apex:outputPanel rendered="{!Product.Discounts.size > 0}">
+														<apex:dataTable value="{!Product.Discounts}" var="DiscountWrp" style="width:390px; border: 1px solid rgb(221, 219, 218);">
+															<apex:column style="width: 200px; border: 1px solid rgb(221, 219, 218);">
+																<apex:facet name="header">Nombre</apex:facet>
+																<apex:outputText value="{!DiscountWrp.Discount.Name}"/>
+															</apex:column>
+															<apex:column style="width: 50px; border: 1px solid rgb(221, 219, 218);">
+																<apex:facet name="header">%/$</apex:facet>
+																<apex:outputText value="{!DiscountWrp.Relation.Valor__c}"
+																	rendered="{!OR(
+																			DiscountWrp.Discount.Codigo_de_descuento__c == 'ZDV0',
+																			DiscountWrp.Discount.Codigo_de_descuento__c == 'ZDR0'
+																		)}"
+																/>
+																<apex:outputText value="{!DiscountWrp.Discount.Valor__c}"
+																	rendered="{!AND(
+																			DiscountWrp.Discount.Codigo_de_descuento__c != 'ZDV0',
+																			DiscountWrp.Discount.Codigo_de_descuento__c != 'ZDR0'
+																		)}"
+																/>
+																<apex:outputText value="{!DiscountWrp.Discount.Unidad__c}"/>
+															</apex:column>
+															<apex:column style="width: 70px; border: 1px solid rgb(221, 219, 218);">
+																<apex:facet name="header">Desde</apex:facet>
+																<apex:outputText value="{0,date,dd/MM/yy}">
+																	<apex:param value="{!DiscountWrp.Relation.Fecha_inicio__c}" />
+																</apex:outputText>
+															</apex:column>
+															<apex:column style="width: 70px; border: 1px solid rgb(221, 219, 218);">
+																<apex:facet name="header">Hasta</apex:facet>
+																<apex:outputText value="{0,date,dd/MM/yy}">
+																	<apex:param value="{!DiscountWrp.Relation.Fecha_Fin__c}" />
+																</apex:outputText>
+															</apex:column>
+														</apex:dataTable>
+													</apex:outputPanel>
+													<apex:outputPanel rendered="{!Product.Discounts.size == 0}">
+														<br/>
+														No existen descuentos para este producto.
+													</apex:outputPanel>
+												</div>
+											</div>
+										<!-- =================================== -->
+										</div>
+										<!-- End Product details -->
+									</section>
+								</li>
+							</apex:repeat>
+							<!-- End products -->
+							<!-- ===================================================== -->
+						</ul>
+					</apex:outputPanel>
+				</div>
+			</article>
+		</div>
+	</apex:form>
+	
+	<!-- ======================================================== -->
+	<!-- Spinner -->
+	<div id="spinner" class="slds-scope">
+		<div class="slds-spinner_container">
+			<div role="status" class="slds-spinner slds-spinner_medium slds-spinner_brand">
+				<span class="slds-assistive-text">Loading</span>
+				<div class="slds-spinner__dot-a"></div>
+				<div class="slds-spinner__dot-b"></div>
+			</div>
+		</div>
+	</div>
+</apex:page>

@@ -1,0 +1,19 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId">
+	<aura:attribute name="recordId" type="String" />
+	<aura:attribute name="accountRecord" type="Object" />
+	
+	<force:recordData aura:id="forceRecordCmp"
+		recordId="{!v.recordId}"
+		layoutType="FULL"
+		fields="Contrato__c"
+		mode="VIEW"
+		targetFields="{!v.accountRecord}"
+	/>
+	<!-- 6
+	<br/> -->
+	<lightning:button variant="brand"
+		label="Agregar productos"
+		onclick="{!c.goToAddProducts}"
+		disabled="{!v.accountRecord.Contrato__c == null}"
+	/>
+</aura:component>

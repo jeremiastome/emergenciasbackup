@@ -1,0 +1,5 @@
+<apex:page controller="TestStuffController" >
+	<apex:form >
+		<c:CrearBeneficiario contract="{!$CurrentPage.parameters.conId}" recipient="{!recipient}" />
+	</apex:form>
+</apex:page>
